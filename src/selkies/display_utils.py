@@ -1,4 +1,5 @@
 import re
+import sys
 import os
 from asyncio import subprocess
 import asyncio
@@ -8,6 +9,8 @@ import logging
 
 logger_app_resize = logging.getLogger("resize")
 logger_app_resize.setLevel(logging.INFO)
+
+IS_WINDOWS = sys.platform == "win32"
 
 def fit_res(w, h, max_w, max_h):
     if w <= max_w and h <= max_h:
@@ -72,6 +75,15 @@ async def get_new_res(res_str):
 
 
 async def resize_display(res_str):  # e.g., res_str is "2560x1280"
+    if IS_WINDOWS:
+        from .windows.win_display import resize_display as win_resize
+        try:
+            w, h = map(int, res_str.split("x"))
+            return win_resize(w, h)
+        except (ValueError, Exception) as e:
+            logger_app_resize.error(f"Windows resize failed: {e}")
+            return False
+
     """
     Resizes the display using xrandr to the specified resolution string.
     Adds a new mode via cvt/gtf if the requested mode doesn't exist,
@@ -346,6 +358,15 @@ async def _run_mate_gsettings(dpi_value, logger):
 
 
 async def set_dpi(dpi_setting):
+    if IS_WINDOWS:
+        from .windows.win_display import set_dpi as win_set_dpi
+        try:
+            dpi_value = int(str(dpi_setting))
+            return win_set_dpi(dpi_value)
+        except (ValueError, Exception) as e:
+            logger_app_resize.error(f"Windows DPI setting failed: {e}")
+            return False
+
     """
     Sets the display DPI using DE-specific methods based on a defined detection order.
     The dpi_setting is expected to be an integer or a string representing an integer.
@@ -409,6 +430,10 @@ async def set_dpi(dpi_setting):
     return any_method_succeeded
 
 async def set_cursor_size(size):
+    if IS_WINDOWS:
+        logger_app_resize.info(f"Cursor size setting not yet implemented for Windows: {size}")
+        return True
+
     if not isinstance(size, int) or size <= 0:
         logger_app_resize.error(f"Invalid cursor size: {size}")
         return False
@@ -461,7 +486,6 @@ async def set_cursor_size(size):
     return False
 
 async def main():
-    import sys
     logging.basicConfig(level=logging.INFO)
 
     if len(sys.argv) < 2:

@@ -34,6 +34,8 @@ import uuid
 logger = logging.getLogger("main")
 logger.setLevel(logging.INFO)
 
+IS_WINDOWS = sys.platform == "win32"
+
 from .rtc import RTCApp
 from .media_pipeline import MediaPipeline, MediaPipelinePixel, RateControlMode
 from .webrtc_signaling import WebRTCSignaling
@@ -118,7 +120,8 @@ class WebRTCApp:
 
         # TODO: Starting webrtc mode with some default resolution which will
         # be reconfigured upon client connection. Remove this later.
-        asyncio.run_coroutine_threadsafe(resize_display("1920x1080"), asyncio.get_running_loop())
+        if not IS_WINDOWS:
+            asyncio.run_coroutine_threadsafe(resize_display("1920x1080"), asyncio.get_running_loop())
 
     def handle_signal(self, signum, event) -> None:
         logger.info(f"Received signal {signum}, initiating shutdown")
@@ -134,19 +137,34 @@ class WebRTCApp:
         # Init signaling client
         self.signaling_client = self.create_signaling_client()
 
-        self.media_pipeline = MediaPipelinePixel(
-            async_event_loop=asyncio.get_running_loop(),
-            encoder_rtc=self.args.encoder_rtc,
-            framerate=int(self.args.framerate),
-            video_bitrate=int(self.args.video_bitrate),
-            audio_bitrate=int(self.args.audio_bitrate),
-            audio_channels=int(self.args.audio_channels),
-            audio_enabled=self.args.audio_enabled,
-            audio_device_name=self.args.audio_device_name,
-            crf=int(self.args.h264_crf),
-        )
-        if self.args.enable_rate_control:
-            self.media_pipeline.rc_mode = RateControlMode(self.args.rate_control_mode)
+        if IS_WINDOWS:
+            from .media_pipeline_win import MediaPipelineGStreamer
+            self.media_pipeline = MediaPipelineGStreamer(
+                async_event_loop=asyncio.get_running_loop(),
+                encoder=self.args.encoder_rtc,
+                framerate=int(self.args.framerate),
+                video_bitrate=int(self.args.video_bitrate),
+                audio_bitrate=int(self.args.audio_bitrate),
+                width=int(self.args.manual_width) if self.args.manual_width > 0 else 1920,
+                height=int(self.args.manual_height) if self.args.manual_height > 0 else 1080,
+                audio_channels=int(self.args.audio_channels),
+                audio_enabled=self.args.audio_enabled,
+                audio_device_name=self.args.audio_device_name,
+                crf=int(self.args.h264_crf),
+                rc_mode=RateControlMode(self.args.rate_control_mode) if self.args.enable_rate_control else RateControlMode.CBR,
+            )
+        else:
+            self.media_pipeline = MediaPipelinePixel(
+                async_event_loop=asyncio.get_running_loop(),
+                encoder_rtc=self.args.encoder_rtc,
+                framerate=int(self.args.framerate),
+                video_bitrate=int(self.args.video_bitrate),
+                audio_bitrate=int(self.args.audio_bitrate),
+                audio_channels=int(self.args.audio_channels),
+                audio_enabled=self.args.audio_enabled,
+                audio_device_name=self.args.audio_device_name,
+                crf=int(self.args.h264_crf),
+            )
 
         # Fetch rtc configuration
         stun_servers, turn_servers, rtc_config, self.monitoring_utils_used = await get_rtc_configuration(self.args)

@@ -29,18 +29,9 @@ dependencies = [
     "gputil",
     "prometheus_client",
     "msgpack",
-    "pynput",
     "psutil",
     "watchdog",
     "Pillow",
-    "python-xlib @ https://github.com/selkies-project/python-xlib/archive/master.zip",
-    "pixelflux",
-    "pcmflux",
-    "xkbcommon",
-    "distro",
-    # PulseAudio Microphone
-    "pulsectl",
-    "pasimple",
     # WebRTC
     "aioice>=0.10.1,<1.0.0",
     "av",
@@ -61,6 +52,25 @@ Homepage = "https://github.com/selkies-project/selkies"
 [project.scripts]
 selkies = "selkies.__main__:main"
 selkies-resize = "selkies.display_utils:entrypoint"
+
+[project.optional-dependencies]
+linux = [
+    "pynput",
+    "python-xlib @ https://github.com/selkies-project/python-xlib/archive/master.zip",
+    "pixelflux",
+    "pcmflux",
+    "xkbcommon",
+    "distro",
+    "pulsectl",
+    "pasimple",
+]
+windows = [
+    "pywin32>=306",
+    "comtypes>=1.4",
+    "pyperclip>=1.8",
+    "pycaw>=230",
+    "screeninfo>=0.8",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]

@@ -22,11 +22,22 @@
 import asyncio
 import logging
 import ctypes
+import sys
 from enum import Enum
 from abc import ABCMeta, abstractmethod
 
-from pixelflux import CaptureSettings, ScreenCapture, StripeCallback
-from pcmflux import AudioCapture, AudioCaptureSettings, AudioChunkCallback
+IS_WINDOWS = sys.platform == "win32"
+
+if not IS_WINDOWS:
+    from pixelflux import CaptureSettings, ScreenCapture, StripeCallback
+    from pcmflux import AudioCapture, AudioCaptureSettings, AudioChunkCallback
+else:
+    CaptureSettings = None
+    ScreenCapture = None
+    StripeCallback = None
+    AudioCapture = None
+    AudioCaptureSettings = None
+    AudioChunkCallback = None
 
 logger = logging.getLogger("media_pipeline")
 logger.setLevel(logging.INFO)

@@ -6,6 +6,9 @@ import argparse
 import os
 import logging
 import re
+import sys
+
+IS_WINDOWS = sys.platform == "win32"
 
 # Settings Precedence and Naming Convention
 # -----------------------------------------
@@ -95,7 +98,7 @@ COMMON_SETTING_DEFINITIONS = [
     {'name': 'debug', 'type': 'bool', 'default': False, 'help': 'Enable debug logging.'},
     {'name': 'mode', 'type': 'str', 'default': 'websockets', 'help': "Specify the mode: 'webrtc' or 'websockets'; defaults to websockets"},
     {'name': 'enable_dual_mode', 'type': 'bool', 'default': False, 'help': 'Enable switching Streaming modes from UI'},
-    {'name': 'audio_device_name', 'type': 'str', 'default': 'output.monitor', 'help': 'Audio device name for pcmflux capture.'},
+    {'name': 'audio_device_name', 'type': 'str', 'default': '' if IS_WINDOWS else 'output.monitor', 'help': 'Audio device name for pcmflux capture.'},
 ]
 
 SETTING_DEFINITIONS_WEBSOCKETS = [
@@ -154,7 +157,7 @@ SETTING_DEFINITIONS_WEBRTC = [
     {'name': 'cloudflare_turn_token_id', 'type': 'str', 'default': '', 'help': 'The Cloudflare TURN App token ID.'},
     {'name': 'cloudflare_turn_api_token', 'type': 'str', 'default': '', 'help': 'The Cloudflare TURN API token.'},
 
-    {'name': 'encoder_rtc', 'type': 'enum', 'default': 'x264enc', 'meta': {'allowed': ['av1enc', 'x264enc', 'nvh264enc', 'vp8enc']}, 'help': 'Video encoder to encode video media'},
+    {'name': 'encoder_rtc', 'type': 'enum', 'default': 'nvh264enc' if IS_WINDOWS else 'x264enc', 'meta': {'allowed': ['av1enc', 'x264enc', 'nvh264enc', 'vp8enc']}, 'help': 'Video encoder to encode video media'},
     {'name': 'app_wait_ready', 'type': 'bool', 'default': False, 'help': 'Waits for --app_ready_file to exist before starting stream if set to "true"'},
     {'name': 'app_ready_file', 'type': 'str', 'default': '/tmp/selkies-appready', 'help': 'File set by sidecar used to indicate that app is initialized and ready'},
     {'name': 'uinput_mouse_socket', 'type': 'str', 'default': '', 'help': 'Path to the uinput mouse socket, if not provided uinput is used directly'},

@@ -26,9 +26,13 @@ from asyncio import subprocess
 import socket
 import os
 import base64
+import sys
 import io
 import re
 import json
+
+IS_WINDOWS = sys.platform == "win32"
+
 from PIL import Image 
 import urllib.parse
 import urllib.request
@@ -36,6 +40,9 @@ from .media_pipeline import RateControlMode
 try:
     from xkbcommon import xkb
 except ImportError:
+    xkb = None
+
+if IS_WINDOWS:
     xkb = None
 
 try:
@@ -55,8 +62,17 @@ except ImportError:
     XK = None
     xfixes = None
     xtest = None
+
+if IS_WINDOWS:
+    X11_LIBS_AVAILABLE = False
 import msgpack
-import distro
+if not IS_WINDOWS:
+    try:
+        import distro
+    except ImportError:
+        distro = None
+else:
+    distro = None
 import aiofiles
 
 logger_webrtc_input = logging.getLogger("webrtc_input")
@@ -911,6 +927,24 @@ class WebRTCInput:
             except Exception as e:
                 logger_webrtc_input.error(f"Failed to initialize Wayland input: {e}")
 
+        if IS_WINDOWS:
+            try:
+                from .windows.win_input import (
+                    send_key_event, send_mouse_move, send_mouse_button,
+                    send_mouse_wheel, keysym_to_vk, get_screen_size as win_get_screen_size,
+                    send_unicode_key,
+                )
+                self._win_send_key = send_key_event
+                self._win_mouse_move = send_mouse_move
+                self._win_mouse_button = send_mouse_button
+                self._win_mouse_wheel = send_mouse_wheel
+                self._win_keysym_to_vk = keysym_to_vk
+                self._win_get_screen_size = win_get_screen_size
+                self._win_send_unicode_key = send_unicode_key
+                logger_webrtc_input.info("Windows input injection initialized via Win32 SendInput")
+            except Exception as e:
+                logger_webrtc_input.error(f"Failed to initialize Windows input: {e}")
+
     def _build_wayland_keymap(self):
         """Builds a reverse mapping from Keysyms to Scancodes using xkbcommon."""
         if not self.xkb_keymap:
@@ -985,6 +1019,8 @@ class WebRTCInput:
 
     def __keyboard_connect(self): self.keyboard = pynput.keyboard.Controller()
     def __mouse_connect(self):
+        if IS_WINDOWS:
+            return
         if self.uinput_mouse_socket_path:
             logger_webrtc_input.info(f"Connecting to uinput mouse socket: {self.uinput_mouse_socket_path}")
             self.uinput_mouse_socket = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
@@ -1056,6 +1092,9 @@ class WebRTCInput:
             gamepad.send_event(client_axis_num, client_axis_val, is_button_event=False)
             
     async def connect(self):
+        if IS_WINDOWS:
+            logger_webrtc_input.info("Windows mode: skipping X11/Wayland/gamepad initialization.")
+            return
         if not self.is_wayland and X11_LIBS_AVAILABLE:
             try: self.xdisplay = display.Display()
             except Exception as e: logger_webrtc_input.error(f"Failed to connect to X display: {e}"); self.xdisplay = None
@@ -1088,6 +1127,9 @@ class WebRTCInput:
             self.keyboard_worker_task = asyncio.create_task(self._keyboard_worker())        
 
     async def _initialize_persistent_gamepads(self):
+        if IS_WINDOWS:
+            logger_webrtc_input.info("Windows mode: skipping gamepad initialization (Unix domain sockets not available).")
+            return
         logger_webrtc_input.info(f"Initializing {self.num_gamepads} persistent gamepad instances...")
         if not os.path.exists(self.js_socket_path_prefix):
             try:
@@ -1135,6 +1177,17 @@ class WebRTCInput:
             self.keyboard_worker_task = None
 
     async def reset_keyboard(self):
+        if IS_WINDOWS:
+            if hasattr(self, '_win_send_key') and hasattr(self, '_win_keysym_to_vk'):
+                logger_webrtc_input.info("Resetting keyboard modifiers (Windows).")
+                modifiers = [65507, 65505, 65513, 65508, 65506, 65027, 65511, 65512]
+                for k in modifiers:
+                    vk = self._win_keysym_to_vk(k)
+                    if vk:
+                        try: self._win_send_key(vk, down=False)
+                        except: pass
+            return
+
         if self.is_wayland:
             if self.wayland_input:
                 # Release common modifiers
@@ -1188,6 +1241,22 @@ class WebRTCInput:
                 elif self.mouse: self.mouse.release(btn_uinput_or_pynput)
 
     async def send_x11_keypress(self, keysym, down=True):
+        if IS_WINDOWS and hasattr(self, '_win_send_key'):
+            vk = self._win_keysym_to_vk(keysym)
+            if vk != 0:
+                self._win_send_key(vk, down)
+                return
+            if (keysym & 0xFF000000) == 0x01000000:
+                codepoint = keysym & 0x00FFFFFF
+                if 0 < codepoint <= 0x10FFFF and hasattr(self, '_win_send_unicode_key'):
+                    self._win_send_unicode_key(codepoint, down)
+                    return
+            if 0x20 <= keysym <= 0xFF:
+                if hasattr(self, '_win_send_unicode_key'):
+                    self._win_send_unicode_key(keysym, down)
+                    return
+            return
+
         if self.is_wayland and self.wayland_input:
             if (0xA0 <= keysym <= 0xFF) or keysym == 0x20AC or ((keysym & 0xFF000000) == 0x01000000):
                 await self._xdotool_fallback(keysym, down)
@@ -1398,6 +1467,35 @@ class WebRTCInput:
             pass
 
     async def _inject_unicode_via_clipboard(self, text_to_type):
+        if IS_WINDOWS and hasattr(self, '_win_send_unicode_key'):
+            from .windows.win_clipboard import get_clipboard_text, set_clipboard_text
+            async with self.clipboard_injection_lock:
+                self.clipboard_paused = True
+                currently_active_mods = list(self.active_modifiers)
+                try:
+                    for mod_keysym in currently_active_mods:
+                        await self.send_x11_keypress(mod_keysym, down=False)
+                    old_data = get_clipboard_text()
+                    set_clipboard_text(text_to_type)
+                    await asyncio.sleep(0.02)
+                    VK_CONTROL = 0x11
+                    VK_V = 0x56
+                    self._win_send_key(VK_CONTROL, down=True)
+                    self._win_send_key(VK_V, down=True)
+                    self._win_send_key(VK_V, down=False)
+                    self._win_send_key(VK_CONTROL, down=False)
+                    await asyncio.sleep(0.02)
+                    if old_data is not None:
+                        set_clipboard_text(old_data)
+                except Exception as e:
+                    logger_webrtc_input.error(f"Error during Windows clipboard injection: {e}", exc_info=True)
+                finally:
+                    for mod_keysym in currently_active_mods:
+                        if mod_keysym in self.active_modifiers:
+                            await self.send_x11_keypress(mod_keysym, down=True)
+                    self.clipboard_paused = False
+            return
+
         async with self.clipboard_injection_lock:
             self.clipboard_paused = True
             KEY_SHIFT_L = 0xFFE1
@@ -1444,6 +1542,60 @@ class WebRTCInput:
                 self.clipboard_paused = False
 
     async def send_x11_mouse(self, x, y, button_mask, scroll_magnitude, relative=False, display_id='primary'):
+        if IS_WINDOWS and hasattr(self, '_win_mouse_move'):
+            if relative:
+                final_x = self.last_x + x
+                final_y = self.last_y + y
+            else:
+                final_x = x
+                final_y = y
+
+            position_changed = (final_x != self.last_x or final_y != self.last_y)
+            self.last_x = final_x
+            self.last_y = final_y
+
+            if position_changed:
+                self._win_mouse_move(final_x, final_y)
+
+            if button_mask != self.button_mask:
+                for bit_index in range(8):
+                    current_button_bit_value = (1 << bit_index)
+                    button_state_changed = ((self.button_mask & current_button_bit_value) != \
+                                            (button_mask & current_button_bit_value))
+                    if button_state_changed:
+                        is_pressed_now = (button_mask & current_button_bit_value) != 0
+                        if bit_index == 0:
+                            self._win_mouse_button("left", is_pressed_now)
+                        elif bit_index == 1:
+                            self._win_mouse_button("middle", is_pressed_now)
+                        elif bit_index == 2:
+                            self._win_mouse_button("right", is_pressed_now)
+                        elif bit_index == 3:
+                            if scroll_magnitude > 0 and is_pressed_now:
+                                self._win_mouse_wheel(0, scroll_magnitude * 120)
+                            elif is_pressed_now:
+                                await self.send_x11_keypress(KEYSYM_ALT_L, down=True)
+                                await self.send_x11_keypress(KEYSYM_LEFT_ARROW, down=True)
+                                await self.send_x11_keypress(KEYSYM_LEFT_ARROW, down=False)
+                                await self.send_x11_keypress(KEYSYM_ALT_L, down=False)
+                        elif bit_index == 4:
+                            if scroll_magnitude > 0 and is_pressed_now:
+                                self._win_mouse_wheel(0, -scroll_magnitude * 120)
+                            elif is_pressed_now:
+                                await self.send_x11_keypress(KEYSYM_ALT_L, down=True)
+                                await self.send_x11_keypress(KEYSYM_RIGHT_ARROW, down=True)
+                                await self.send_x11_keypress(KEYSYM_RIGHT_ARROW, down=False)
+                                await self.send_x11_keypress(KEYSYM_ALT_L, down=False)
+                        elif bit_index == 6:
+                            if scroll_magnitude > 0 and is_pressed_now:
+                                self._win_mouse_wheel(-scroll_magnitude * 120, 0)
+                        elif bit_index == 7:
+                            if scroll_magnitude > 0 and is_pressed_now:
+                                self._win_mouse_wheel(scroll_magnitude * 120, 0)
+
+            self.button_mask = button_mask
+            return
+
         if relative:
             final_x = self.last_x + x
             final_y = self.last_y + y
@@ -1648,7 +1800,17 @@ class WebRTCInput:
             return None, None
 
     async def read_clipboard(self, use_binary=False):
-        """Reads clipboard. Supports Wayland (wl-paste) and X11 (xclip)."""
+        """Reads clipboard. Supports Windows, Wayland (wl-paste) and X11 (xclip)."""
+        if IS_WINDOWS:
+            try:
+                from .windows.win_clipboard import get_clipboard_data
+                text, mime = await asyncio.to_thread(get_clipboard_data)
+                if text:
+                    return text, mime
+                return None, None
+            except Exception as e:
+                logger_webrtc_input.warning(f"Error reading Windows clipboard: {e}")
+                return None, None
         if self.is_wayland:
             try:
                 proc_types = await subprocess.create_subprocess_exec(
@@ -1754,6 +1916,15 @@ class WebRTCInput:
     async def write_clipboard(self, data, mime_type="text/plain"):
         if not data:
             return True
+        if IS_WINDOWS:
+            try:
+                from .windows.win_clipboard import set_clipboard_text
+                text = data.decode('utf-8') if isinstance(data, bytes) else data
+                result = await asyncio.to_thread(set_clipboard_text, text)
+                return result
+            except Exception as e:
+                logger_webrtc_input.warning(f"Error writing Windows clipboard: {e}")
+                return False
         input_bytes = data if isinstance(data, bytes) else data.encode('utf-8')
 
         # Ensure LANG is set to a UTF-8 locale
@@ -1850,6 +2021,55 @@ class WebRTCInput:
     def stop_clipboard(self): self.clipboard_running = False; logger_webrtc_input.info("Stopping clipboard monitor")
     
     async def start_cursor_monitor(self):
+        if IS_WINDOWS:
+            logger_webrtc_input.info("Windows mode: Starting cursor monitor via Win32 polling.")
+            from .windows.win_cursor import capture_cursor as win_capture_cursor
+            self.cursors_running = True
+            last_cursor_serial = None
+            try:
+                cursor_result = await asyncio.to_thread(
+                    win_capture_cursor, self.cursor_scale, self.cursor_size
+                )
+                if cursor_result:
+                    cursor_data = {
+                        "curdata": base64.b64encode(cursor_result["png_data"]).decode(),
+                        "width": cursor_result["width"],
+                        "height": cursor_result["height"],
+                        "hotx": cursor_result["hotspot_x"],
+                        "hoty": cursor_result["hotspot_y"],
+                        "handle": 0,
+                    }
+                    self.on_cursor_change(cursor_data)
+                    last_cursor_serial = id(cursor_result)
+            except Exception as e:
+                logger_webrtc_input.warning(f"Error fetching initial Windows cursor: {e}")
+
+            while self.cursors_running:
+                try:
+                    await asyncio.sleep(0.1)
+                    cursor_result = await asyncio.to_thread(
+                        win_capture_cursor, self.cursor_scale, self.cursor_size
+                    )
+                    if cursor_result:
+                        current_serial = id(cursor_result)
+                        if current_serial != last_cursor_serial:
+                            cursor_data = {
+                                "curdata": base64.b64encode(cursor_result["png_data"]).decode(),
+                                "width": cursor_result["width"],
+                                "height": cursor_result["height"],
+                                "hotx": cursor_result["hotspot_x"],
+                                "hoty": cursor_result["hotspot_y"],
+                                "handle": 0,
+                            }
+                            self.on_cursor_change(cursor_data)
+                            last_cursor_serial = current_serial
+                except asyncio.CancelledError:
+                    break
+                except Exception as e:
+                    logger_webrtc_input.warning(f"Error in Windows cursor monitor: {e}")
+                    await asyncio.sleep(1)
+            logger_webrtc_input.info("Windows cursor monitor stopped")
+            return
         if self.is_wayland:
             logger_webrtc_input.info("Wayland mode: Cursor monitor disabled (handled by compositor callback).")
             return
@@ -2063,6 +2283,8 @@ class WebRTCInput:
             except Exception as e:
                 logger_webrtc_input.error(f"Error audio bitrate change: {e}")
         elif msg_type == "js": 
+            if IS_WINDOWS:
+                return
             cmd = toks[1]
             gamepad_idx = int(toks[2])
 
@@ -2245,7 +2467,9 @@ class WebRTCInput:
         elif msg_type == "co" and toks[1] == "end": 
             try:
                 text_to_type = msg[7:]
-                if getattr(self, 'use_clipboard_fallback', False):
+                if IS_WINDOWS:
+                    await self._inject_unicode_via_clipboard(text_to_type)
+                elif getattr(self, 'use_clipboard_fallback', False):
                     self.keyboard_queue.put_nowait(("co_end", text_to_type))
                 else:
                     cmd = ["wtype", "--", text_to_type] if self.is_wayland else ["xdotool", "type", text_to_type]
