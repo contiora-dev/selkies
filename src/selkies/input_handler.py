@@ -858,6 +858,7 @@ class WebRTCInput:
         self.button_mask = 0
         self.last_x = -1
         self.last_y = -1
+        self.win_mouse_mode = "desktop"
         self.ping_start = None
 
         self.upload_dir = upload_dir
@@ -932,16 +933,17 @@ class WebRTCInput:
                 from .windows.win_input import (
                     send_key_event, send_mouse_move, send_mouse_button,
                     send_mouse_wheel, keysym_to_vk, get_screen_size as win_get_screen_size,
-                    send_unicode_key,
+                    send_unicode_key, send_mouse_move_relative,
                 )
                 self._win_send_key = send_key_event
                 self._win_mouse_move = send_mouse_move
+                self._win_mouse_move_relative = send_mouse_move_relative
                 self._win_mouse_button = send_mouse_button
                 self._win_mouse_wheel = send_mouse_wheel
                 self._win_keysym_to_vk = keysym_to_vk
                 self._win_get_screen_size = win_get_screen_size
                 self._win_send_unicode_key = send_unicode_key
-                logger_webrtc_input.info("Windows input injection initialized via Win32 SendInput")
+                logger_webrtc_input.info("Windows input injection initialized via pynput + SendInput")
             except Exception as e:
                 logger_webrtc_input.error(f"Failed to initialize Windows input: {e}")
 
@@ -1554,10 +1556,15 @@ class WebRTCInput:
 
                 position_changed = (final_x != self.last_x or final_y != self.last_y)
                 if position_changed:
-                    sw, sh = self._win_get_screen_size()
-                    norm_x = int(final_x * 65535 / sw) if sw > 0 else 0
-                    norm_y = int(final_y * 65535 / sh) if sh > 0 else 0
-                    self._win_mouse_move(norm_x, norm_y, absolute=True)
+                    dx = int(final_x - self.last_x)
+                    dy = int(final_y - self.last_y)
+                    if getattr(self, 'win_mouse_mode', 'desktop') == 'gaming':
+                        if (dx != 0 or dy != 0) and hasattr(self, '_win_mouse_move_relative'):
+                            self._win_mouse_move_relative(dx, dy)
+                    else:
+                        if (dx != 0 or dy != 0) and hasattr(self, '_win_mouse_move_relative'):
+                            self._win_mouse_move_relative(dx, dy)
+                        self._win_mouse_move(int(final_x), int(final_y), absolute=True)
 
             self.last_x = final_x
             self.last_y = final_y
@@ -2542,6 +2549,10 @@ class WebRTCInput:
                 asyncio.create_task(self.on_update_settings(settings_json))
             except Exception as e:
                 logger_webrtc_input.error(f"Failed to parse SETTINGS data: {e}")
+        elif msg_type == "_mouse_mode":
+            mode = toks[1] if len(toks) > 1 else "desktop"
+            self.win_mouse_mode = mode
+            logger_webrtc_input.info(f"Mouse mode changed to: {mode}")
         else:
             logger_webrtc_input.info(f"Unknown data channel message: {msg[:100]}") 
 

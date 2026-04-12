@@ -35,6 +35,20 @@ VK_CAPITAL = 0x14
 VK_NUMLOCK = 0x90
 VK_SCROLL = 0x91
 
+try:
+    import pynput
+    _pynput_mouse = pynput.mouse.Controller()
+    _pynput_mouse_button_map = {
+        "left": pynput.mouse.Button.left,
+        "middle": pynput.mouse.Button.middle,
+        "right": pynput.mouse.Button.right,
+    }
+    _USE_PYNPUT_MOUSE = True
+    logger.info("pynput mouse controller initialized")
+except Exception as e:
+    _USE_PYNPUT_MOUSE = False
+    logger.warning("pynput mouse not available (%s), falling back to SendInput", e)
+
 class MOUSEINPUT(ctypes.Structure):
     _fields_ = [
         ("dx", wintypes.LONG),
@@ -206,44 +220,80 @@ def send_unicode_key(codepoint, down=True):
     user32.SendInput(1, ctypes.byref(inp), ctypes.sizeof(INPUT))
 
 def send_mouse_move(x, y, absolute=False):
+    if _USE_PYNPUT_MOUSE:
+        if absolute:
+            _pynput_mouse.position = (int(x), int(y))
+        else:
+            _pynput_mouse.move(int(x), int(y))
+    else:
+        if absolute:
+            sw, sh = get_screen_size()
+            norm_x = int(x * 65535 / sw) if sw > 0 else 0
+            norm_y = int(y * 65535 / sh) if sh > 0 else 0
+            inp = INPUT()
+            inp.type = INPUT_MOUSE
+            inp.union.mi.dx = norm_x
+            inp.union.mi.dy = norm_y
+            inp.union.mi.dwFlags = MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE
+            user32.SendInput(1, ctypes.byref(inp), ctypes.sizeof(INPUT))
+        else:
+            inp = INPUT()
+            inp.type = INPUT_MOUSE
+            inp.union.mi.dx = x
+            inp.union.mi.dy = y
+            inp.union.mi.dwFlags = MOUSEEVENTF_MOVE
+            user32.SendInput(1, ctypes.byref(inp), ctypes.sizeof(INPUT))
+
+def send_mouse_move_relative(dx, dy):
     inp = INPUT()
     inp.type = INPUT_MOUSE
-    inp.union.mi.dx = x
-    inp.union.mi.dy = y
+    inp.union.mi.dx = dx
+    inp.union.mi.dy = dy
     inp.union.mi.dwFlags = MOUSEEVENTF_MOVE
-    if absolute:
-        inp.union.mi.dwFlags |= MOUSEEVENTF_ABSOLUTE
     user32.SendInput(1, ctypes.byref(inp), ctypes.sizeof(INPUT))
 
 def send_mouse_button(button, down=True):
-    flag_map = {
-        "left": MOUSEEVENTF_LEFTDOWN if down else MOUSEEVENTF_LEFTUP,
-        "right": MOUSEEVENTF_RIGHTDOWN if down else MOUSEEVENTF_RIGHTUP,
-        "middle": MOUSEEVENTF_MIDDLEDOWN if down else MOUSEEVENTF_MIDDLEUP,
-        "x1": 0x0080 if down else 0x0100,
-        "x2": 0x0020 if down else 0x0040,
-    }
-    flags = flag_map.get(button)
-    if flags is None:
-        return
-    inp = INPUT()
-    inp.type = INPUT_MOUSE
-    inp.union.mi.dwFlags = flags
-    user32.SendInput(1, ctypes.byref(inp), ctypes.sizeof(INPUT))
+    if _USE_PYNPUT_MOUSE:
+        btn = _pynput_mouse_button_map.get(button)
+        if btn is None:
+            return
+        if down:
+            _pynput_mouse.press(btn)
+        else:
+            _pynput_mouse.release(btn)
+    else:
+        flag_map = {
+            "left": MOUSEEVENTF_LEFTDOWN if down else MOUSEEVENTF_LEFTUP,
+            "right": MOUSEEVENTF_RIGHTDOWN if down else MOUSEEVENTF_RIGHTUP,
+            "middle": MOUSEEVENTF_MIDDLEDOWN if down else MOUSEEVENTF_MIDDLEUP,
+        }
+        flags = flag_map.get(button)
+        if flags is None:
+            return
+        inp = INPUT()
+        inp.type = INPUT_MOUSE
+        inp.union.mi.dwFlags = flags
+        user32.SendInput(1, ctypes.byref(inp), ctypes.sizeof(INPUT))
 
 def send_mouse_wheel(delta_x=0, delta_y=0):
-    if delta_y != 0:
-        inp = INPUT()
-        inp.type = INPUT_MOUSE
-        inp.union.mi.dwFlags = MOUSEEVENTF_WHEEL
-        inp.union.mi.mouseData = delta_y
-        user32.SendInput(1, ctypes.byref(inp), ctypes.sizeof(INPUT))
-    if delta_x != 0:
-        inp = INPUT()
-        inp.type = INPUT_MOUSE
-        inp.union.mi.dwFlags = MOUSEEVENTF_HWHEEL
-        inp.union.mi.mouseData = delta_x
-        user32.SendInput(1, ctypes.byref(inp), ctypes.sizeof(INPUT))
+    if _USE_PYNPUT_MOUSE:
+        if delta_y != 0:
+            _pynput_mouse.scroll(0, delta_y // 120)
+        if delta_x != 0:
+            _pynput_mouse.scroll(delta_x // 120, 0)
+    else:
+        if delta_y != 0:
+            inp = INPUT()
+            inp.type = INPUT_MOUSE
+            inp.union.mi.dwFlags = MOUSEEVENTF_WHEEL
+            inp.union.mi.mouseData = delta_y
+            user32.SendInput(1, ctypes.byref(inp), ctypes.sizeof(INPUT))
+        if delta_x != 0:
+            inp = INPUT()
+            inp.type = INPUT_MOUSE
+            inp.union.mi.dwFlags = MOUSEEVENTF_HWHEEL
+            inp.union.mi.mouseData = delta_x
+            user32.SendInput(1, ctypes.byref(inp), ctypes.sizeof(INPUT))
 
 def get_screen_size():
     return user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)

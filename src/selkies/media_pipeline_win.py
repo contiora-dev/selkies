@@ -167,7 +167,8 @@ class MediaPipelineGStreamer(MediaPipeline):
             "audio/x-raw,format=S16LE,rate=48000,channels=2 ! "
             "opusenc name=opusenc "
             f"bitrate={self.audio_bitrate} "
-            "frame-size=20 ! "
+            "frame-size=10 "
+            "bandwidth=bandwidth-fullband ! "
             "appsink name=audioout emit-signals=false"
         )
         return pipeline_str
