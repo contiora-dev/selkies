@@ -130,7 +130,7 @@ class MediaPipelineGStreamer(MediaPipeline):
                 "rc-mode=cbr "
                 "aud=true ! "
                 "h264parse config-interval=-1 ! "
-                "appsrc name=videoout emit-signals=false"
+                "appsink name=videoout emit-signals=false"
             )
         elif self.encoder == "x264enc":
             pipeline_str = (
@@ -143,9 +143,9 @@ class MediaPipelineGStreamer(MediaPipeline):
                 f"bitrate={self.video_bitrate * 1000} "
                 "tune=zerolatency "
                 "speed-preset=ultrafast "
-                "key-int-max=-1 ! "
+                "key-int-max=60 ! "
                 "h264parse config-interval=-1 ! "
-                "appsrc name=videoout emit-signals=false"
+                "appsink name=videoout emit-signals=false"
             )
         else:
             raise MediaPipelineError(f"Unsupported encoder: {self.encoder}")
@@ -161,15 +161,14 @@ class MediaPipelineGStreamer(MediaPipeline):
             "wasapisrc name=audiosrc "
             f"{device_prop}"
             "low-latency=true "
-            "loopback=true "
-            f"rate=48000 channels={self.audio_channels} ! "
+            "loopback=true ! "
             "audioconvert ! "
             "audioresample ! "
             "audio/x-raw,format=S16LE,rate=48000,channels=2 ! "
             "opusenc name=opusenc "
             f"bitrate={self.audio_bitrate} "
             "frame-size=20 ! "
-            "appsrc name=audioout emit-signals=false"
+            "appsink name=audioout emit-signals=false"
         )
         return pipeline_str
 
@@ -272,25 +271,35 @@ class MediaPipelineGStreamer(MediaPipeline):
                 return
 
             if self.audio_enabled:
-                audio_str = self._build_audio_pipeline()
-                self._audio_pipeline = Gst.parse_launch(audio_str)
-                self._audio_bus = self._audio_pipeline.get_bus()
-                self._audio_bus.add_signal_watch()
+                try:
+                    audio_str = self._build_audio_pipeline()
+                    self._audio_pipeline = Gst.parse_launch(audio_str)
+                    self._audio_bus = self._audio_pipeline.get_bus()
+                    self._audio_bus.add_signal_watch()
 
-                audio_sink = self._audio_pipeline.get_by_name("audioout")
-                if audio_sink:
-                    audio_sink.set_property("emit-signals", True)
-                    audio_sink.set_property("sync", False)
-                    audio_sink.set_property("max-buffers", 1)
-                    audio_sink.set_property("drop", True)
-                    audio_sink.set_property("caps", Gst.Caps.from_string("audio/x-opus"))
-                    audio_sink.connect("new-sample", self._on_audio_new_sample)
+                    audio_sink = self._audio_pipeline.get_by_name("audioout")
+                    if audio_sink:
+                        audio_sink.set_property("emit-signals", True)
+                        audio_sink.set_property("sync", False)
+                        audio_sink.set_property("max-buffers", 1)
+                        audio_sink.set_property("drop", True)
+                        audio_sink.set_property("caps", Gst.Caps.from_string("audio/x-opus"))
+                        audio_sink.connect("new-sample", self._on_audio_new_sample)
 
-                ret = self._audio_pipeline.set_state(Gst.State.PLAYING)
-                if ret == Gst.StateChangeReturn.FAILURE:
-                    logger.error("Failed to start audio pipeline, continuing without audio")
+                    ret = self._audio_pipeline.set_state(Gst.State.PLAYING)
+                    if ret == Gst.StateChangeReturn.FAILURE:
+                        logger.error("Failed to start audio pipeline, continuing without audio")
+                        if self._audio_pipeline:
+                            self._audio_pipeline.set_state(Gst.State.NULL)
+                            self._audio_pipeline = None
+                        self._audio_bus = None
+                    else:
+                        logger.info("Audio pipeline started successfully")
+                except Exception as audio_err:
+                    logger.error(f"Failed to start audio pipeline, continuing without audio: {audio_err}")
                     if self._audio_pipeline:
-                        self._audio_pipeline.set_state(Gst.State.NULL)
+                        try: self._audio_pipeline.set_state(Gst.State.NULL)
+                        except: pass
                         self._audio_pipeline = None
                     self._audio_bus = None
 

@@ -72,6 +72,8 @@ class CURSORINFO(ctypes.Structure):
 CURSOR_SHOWING = 0x0001
 
 def capture_cursor(scale=1.0, size=32):
+    if size <= 0:
+        size = 32
     cursor_info = CURSORINFO()
     cursor_info.cbSize = ctypes.sizeof(CURSORINFO)
 

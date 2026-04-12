@@ -1544,18 +1544,23 @@ class WebRTCInput:
     async def send_x11_mouse(self, x, y, button_mask, scroll_magnitude, relative=False, display_id='primary'):
         if IS_WINDOWS and hasattr(self, '_win_mouse_move'):
             if relative:
+                if x != 0 or y != 0:
+                    self._win_mouse_move(x, y, absolute=False)
                 final_x = self.last_x + x
                 final_y = self.last_y + y
             else:
                 final_x = x
                 final_y = y
 
-            position_changed = (final_x != self.last_x or final_y != self.last_y)
+                position_changed = (final_x != self.last_x or final_y != self.last_y)
+                if position_changed:
+                    sw, sh = self._win_get_screen_size()
+                    norm_x = int(final_x * 65535 / sw) if sw > 0 else 0
+                    norm_y = int(final_y * 65535 / sh) if sh > 0 else 0
+                    self._win_mouse_move(norm_x, norm_y, absolute=True)
+
             self.last_x = final_x
             self.last_y = final_y
-
-            if position_changed:
-                self._win_mouse_move(final_x, final_y)
 
             if button_mask != self.button_mask:
                 for bit_index in range(8):
