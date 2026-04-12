@@ -220,22 +220,25 @@ def send_unicode_key(codepoint, down=True):
     user32.SendInput(1, ctypes.byref(inp), ctypes.sizeof(INPUT))
 
 def send_mouse_move(x, y, absolute=False):
-    if _USE_PYNPUT_MOUSE:
-        if absolute:
-            _pynput_mouse.position = (int(x), int(y))
+    if absolute:
+        sw, sh = get_screen_size()
+        if sw > 0 and sh > 0:
+            norm_x = int(x * 65535 / (sw - 1)) if sw > 1 else 0
+            norm_y = int(y * 65535 / (sh - 1)) if sh > 1 else 0
         else:
-            _pynput_mouse.move(int(x), int(y))
+            norm_x = 0
+            norm_y = 0
+        norm_x = max(0, min(65535, norm_x))
+        norm_y = max(0, min(65535, norm_y))
+        inp = INPUT()
+        inp.type = INPUT_MOUSE
+        inp.union.mi.dx = norm_x
+        inp.union.mi.dy = norm_y
+        inp.union.mi.dwFlags = MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE
+        user32.SendInput(1, ctypes.byref(inp), ctypes.sizeof(INPUT))
     else:
-        if absolute:
-            sw, sh = get_screen_size()
-            norm_x = int(x * 65535 / sw) if sw > 0 else 0
-            norm_y = int(y * 65535 / sh) if sh > 0 else 0
-            inp = INPUT()
-            inp.type = INPUT_MOUSE
-            inp.union.mi.dx = norm_x
-            inp.union.mi.dy = norm_y
-            inp.union.mi.dwFlags = MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE
-            user32.SendInput(1, ctypes.byref(inp), ctypes.sizeof(INPUT))
+        if _USE_PYNPUT_MOUSE:
+            _pynput_mouse.move(int(x), int(y))
         else:
             inp = INPUT()
             inp.type = INPUT_MOUSE

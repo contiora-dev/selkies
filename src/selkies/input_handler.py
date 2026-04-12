@@ -1562,9 +1562,22 @@ class WebRTCInput:
                         if (dx != 0 or dy != 0) and hasattr(self, '_win_mouse_move_relative'):
                             self._win_mouse_move_relative(dx, dy)
                     else:
-                        if (dx != 0 or dy != 0) and hasattr(self, '_win_mouse_move_relative'):
-                            self._win_mouse_move_relative(dx, dy)
-                        self._win_mouse_move(int(final_x), int(final_y), absolute=True)
+                        screen_w, screen_h = self._win_get_screen_size()
+                        stream_w = screen_w
+                        stream_h = screen_h
+                        if self.data_server_instance and hasattr(self.data_server_instance, 'cli_args'):
+                            mw = getattr(self.data_server_instance.cli_args, 'manual_width', 0)
+                            mh = getattr(self.data_server_instance.cli_args, 'manual_height', 0)
+                            if mw > 0 and mh > 0:
+                                stream_w = mw
+                                stream_h = mh
+                        if stream_w > 0 and stream_h > 0 and (stream_w != screen_w or stream_h != screen_h):
+                            scaled_x = int(final_x * screen_w / stream_w)
+                            scaled_y = int(final_y * screen_h / stream_h)
+                        else:
+                            scaled_x = int(final_x)
+                            scaled_y = int(final_y)
+                        self._win_mouse_move(scaled_x, scaled_y, absolute=True)
 
             self.last_x = final_x
             self.last_y = final_y
