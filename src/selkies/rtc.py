@@ -406,6 +406,7 @@ class RTCApp:
         return sdp_text
 
     async def consume_data(self, buf, pts, kind):
+        GST_NS_PER_SEC = 1000000000
         if kind == "video":
             if buf:
                 try:
@@ -413,7 +414,7 @@ class RTCApp:
                     RTP_VIDEO_CLOCK_RATE = 90000
                     packet.time_base = Fraction(1, RTP_VIDEO_CLOCK_RATE)
                     if pts is not None:
-                        packet.pts = pts
+                        packet.pts = int(pts * RTP_VIDEO_CLOCK_RATE / GST_NS_PER_SEC)
                         packet.dts = packet.pts
                     if self.video_pipeline_bridge != None:
                         await self.video_pipeline_bridge.set_data(packet)
@@ -423,9 +424,10 @@ class RTCApp:
             if buf:
                 try:
                     packet = av.Packet(bytes(buf))
-                    packet.time_base = Fraction(1, 48000)
+                    AUDIO_SAMPLE_RATE = 48000
+                    packet.time_base = Fraction(1, AUDIO_SAMPLE_RATE)
                     if pts is not None:
-                        packet.pts = pts
+                        packet.pts = int(pts * AUDIO_SAMPLE_RATE / GST_NS_PER_SEC)
                     if self.audio_pipeline_bridge != None:
                         await self.audio_pipeline_bridge.set_data(packet)
                 except Exception as e:

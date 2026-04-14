@@ -9,7 +9,6 @@ NOTES.md
 *-key.pem
 *-cert.pem
 server_stdout.log
-server_stderr.log
 test_gst.py
 test_gst2.py
 test_import.py
