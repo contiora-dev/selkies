@@ -1293,14 +1293,12 @@ class WebRTCInput:
             unicode_codepoint = keysym & 0x00FFFFFF if (keysym & 0xFF000000) == 0x01000000 else keysym
             try:
                 char = chr(unicode_codepoint)
-                if char.isalpha():
-                    use_pynput_for_printable = True
+                xdotool_arg = f"U{unicode_codepoint:04X}"
+                if not self.active_shortcut_modifiers:
+                    command = ["xdotool", action, "--clearmodifiers", xdotool_arg]
                 else:
-                    xdotool_arg = f"U{unicode_codepoint:04X}"
-                    if not self.active_shortcut_modifiers:
-                        command = ["xdotool", action, "--clearmodifiers", xdotool_arg]
-                    else:
-                        command = ["xdotool", action, xdotool_arg]
+                    command = ["xdotool", action, xdotool_arg]
+                use_pynput_for_printable = True
             except ValueError:
                 use_pynput_for_printable = True
 

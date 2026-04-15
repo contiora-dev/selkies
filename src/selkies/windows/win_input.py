@@ -187,6 +187,8 @@ def keysym_to_vk(keysym):
     if keysym in KEYSYM_TO_VK:
         return KEYSYM_TO_VK[keysym]
     if 0x0020 <= keysym <= 0x007E:
+        if 0x61 <= keysym <= 0x7A:
+            return keysym - 0x20
         return keysym
     if 0x00A0 <= keysym <= 0x00FF:
         vk = user32.VkKeyScanW(keysym) & 0xFF
