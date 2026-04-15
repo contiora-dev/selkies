@@ -110,6 +110,7 @@ function InitUI() {
 		color: #fff;
 		text-align: center;
 		z-index: 5;
+		pointer-events: none;
 	}
 
 	.loading-text {

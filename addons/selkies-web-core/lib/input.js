@@ -1622,7 +1622,7 @@ export class Input {
     }
 
     _mouseButtonMovement(event) {
-        if (this.buttonMask === 0 && event.target !== this.element) {
+        if (this.buttonMask === 0 && event.target !== this.element && !this.element.contains(event.target)) {
             return;
         }
         if (this.inputAttached && !this.use_browser_cursors) {
@@ -2341,6 +2341,13 @@ export class Input {
             this.send("SET_NATIVE_CURSOR_RENDERING,0");
             this.resetKeyboard();
             this.cursorDiv.style.visibility = 'visible'
+            if (document.fullscreenElement != null && this.element.parentElement && document.fullscreenElement === this.element.parentElement) {
+                setTimeout(() => {
+                    if (document.fullscreenElement != null && document.pointerLockElement !== this.element) {
+                        this.element.requestPointerLock().catch(() => {});
+                    }
+                }, 100);
+            }
         }
     }
 
@@ -2367,7 +2374,7 @@ export class Input {
         const elementRelativeX = clientX - this.m.elementClientX;
         const viewportRelativeX = elementRelativeX - this.m.mouseOffsetX;
         let serverX = viewportRelativeX * this.m.mouseMultiX;
-        return Math.round(serverX);
+        return Math.max(0, Math.min(this.m.frameW, Math.round(serverX)));
     }
 
     _clientToServerY(clientY) {
@@ -2375,7 +2382,7 @@ export class Input {
         const elementRelativeY = clientY - this.m.elementClientY;
         const viewportRelativeY = elementRelativeY - this.m.mouseOffsetY;
         let serverY = viewportRelativeY * this.m.mouseMultiY;
-        return Math.round(serverY);
+        return Math.max(0, Math.min(this.m.frameH, Math.round(serverY)));
     }
 
     _gamepadConnected(event) {
@@ -2455,12 +2462,10 @@ export class Input {
     }
 
     getWindowResolution() {
-        const bodyWidth = document.body ? document.body.offsetWidth : window.innerWidth;
-        const bodyHeight = document.body ? document.body.offsetHeight : window.innerHeight;
-        const ratio = window.devicePixelRatio || 1;
-        const offsetRatioWidth = bodyWidth * ratio;
-        const offsetRatioHeight = bodyHeight * ratio;
-        return [ Math.max(1, parseInt(offsetRatioWidth - offsetRatioWidth % 2)), Math.max(1, parseInt(offsetRatioHeight - offsetRatioHeight % 2)) ];
+        const videoContainer = document.querySelector('.video-container');
+        const width = videoContainer ? videoContainer.clientWidth : (document.body ? document.body.offsetWidth : window.innerWidth);
+        const height = videoContainer ? videoContainer.clientHeight : (document.body ? document.body.offsetHeight : window.innerHeight);
+        return [ Math.max(1, parseInt(width - width % 2)), Math.max(1, parseInt(height - height % 2)) ];
     }
 
     resize() {

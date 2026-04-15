@@ -570,6 +570,7 @@ body {
   color: #fff;
   text-align: center;
   z-index: 5;
+  pointer-events: none;
 }
 #playButton {
   padding: 15px 30px;
@@ -1355,9 +1356,19 @@ const initializeInput = () => {
     }
 
     console.log("handleResizeUI: Auto-resize triggered (e.g., by window resize event).");
-    const windowResolution = inputInstance.getWindowResolution();
-    let evenWidth = roundDownToEven(windowResolution[0]);
-    let evenHeight = roundDownToEven(windowResolution[1]);
+    const videoContainer = document.querySelector('.video-container');
+    let cssWidth, cssHeight;
+    if (videoContainer) {
+        const rect = videoContainer.getBoundingClientRect();
+        cssWidth = rect.width;
+        cssHeight = rect.height;
+    } else {
+        cssWidth = window.innerWidth;
+        cssHeight = window.innerHeight;
+    }
+
+    let evenWidth = roundDownToEven(cssWidth);
+    let evenHeight = roundDownToEven(cssHeight);
 
     const dpr = useCssScaling ? 1 : (window.devicePixelRatio || 1);
     const MAX_DIM = 4080;
