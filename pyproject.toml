@@ -70,6 +70,8 @@ windows = [
     "pyperclip>=1.8",
     "pycaw>=230",
     "screeninfo>=0.8",
+    "pixelflux",
+    "pcmflux",
 ]
 
 [tool.setuptools.packages.find]

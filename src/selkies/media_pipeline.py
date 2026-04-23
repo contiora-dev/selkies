@@ -22,16 +22,16 @@
 import asyncio
 import logging
 import ctypes
-import sys
 from enum import Enum
 from abc import ABCMeta, abstractmethod
 
-IS_WINDOWS = sys.platform == "win32"
-
-if not IS_WINDOWS:
+try:
     from pixelflux import CaptureSettings, ScreenCapture, StripeCallback
     from pcmflux import AudioCapture, AudioCaptureSettings, AudioChunkCallback
-else:
+
+    PIXELFLUX_AVAILABLE = True
+except ImportError:
+    PIXELFLUX_AVAILABLE = False
     CaptureSettings = None
     ScreenCapture = None
     StripeCallback = None
@@ -42,12 +42,15 @@ else:
 logger = logging.getLogger("media_pipeline")
 logger.setLevel(logging.INFO)
 
+
 class RateControlMode(str, Enum):
     CBR = "cbr"
     CRF = "crf"
 
+
 class MediaPipelineError(Exception):
     pass
+
 
 class MediaPipeline(metaclass=ABCMeta):
     @abstractmethod
@@ -90,6 +93,7 @@ class MediaPipeline(metaclass=ABCMeta):
     async def set_crf(self, crf: int):
         pass
 
+
 class MediaPipelinePixel(MediaPipeline):
     def __init__(
         self,
@@ -102,9 +106,9 @@ class MediaPipelinePixel(MediaPipeline):
         height: int = 1080,
         audio_channels: int = 2,
         audio_enabled: bool = True,
-        audio_device_name = 'output.monitor',
+        audio_device_name="output.monitor",
         crf: int = 23,
-        rc_mode: RateControlMode = RateControlMode.CBR
+        rc_mode: RateControlMode = RateControlMode.CBR,
     ):
         self.async_event_loop = async_event_loop
         self.audio_channels = audio_channels
@@ -121,8 +125,12 @@ class MediaPipelinePixel(MediaPipeline):
         self.audio_enabled = audio_enabled
         self.audio_device_name = audio_device_name
         self.capture_cursor = False
-        self.produce_data = lambda buf, pts, kind: logger.warning('unhandled produce_data')
-        self.send_data_channel_message = lambda msg: logger.warning('unhandled send_data_channel_message')
+        self.produce_data = lambda buf, pts, kind: logger.warning(
+            "unhandled produce_data"
+        )
+        self.send_data_channel_message = lambda msg: logger.warning(
+            "unhandled send_data_channel_message"
+        )
 
         self.capture_module = None
         self.pcmflux_module = None
@@ -166,7 +174,9 @@ class MediaPipelinePixel(MediaPipeline):
             await self.restart_screen_capture()
             logger.info(f"Updated rate control mode to: {self.rc_mode}")
         except AttributeError:
-            logger.error("Video capture module does not support rate control mode updation")
+            logger.error(
+                "Video capture module does not support rate control mode updation"
+            )
         except Exception as e:
             logger.info(f"Error updating rate control mode {e}", exc_info=True)
 
@@ -199,12 +209,20 @@ class MediaPipelinePixel(MediaPipeline):
         if not self._is_screen_capturing or self.capture_module is None:
             return
 
-        if self.rc_mode == RateControlMode.CRF or new_bitrate <= 0 or self.video_bitrate == new_bitrate:
+        if (
+            self.rc_mode == RateControlMode.CRF
+            or new_bitrate <= 0
+            or self.video_bitrate == new_bitrate
+        ):
             return
 
         try:
-            await self.async_event_loop.run_in_executor(None, self.capture_module.update_video_bitrate, new_bitrate * 1000)
-            logger.info(f"Updated video bitrate: {self.video_bitrate}Mbps -> {new_bitrate}Mbps")
+            await self.async_event_loop.run_in_executor(
+                None, self.capture_module.update_video_bitrate, new_bitrate * 1000
+            )
+            logger.info(
+                f"Updated video bitrate: {self.video_bitrate}Mbps -> {new_bitrate}Mbps"
+            )
             self.video_bitrate = new_bitrate
         except AttributeError:
             logger.error("Video capture module does not support video bitrate updation")
@@ -219,12 +237,16 @@ class MediaPipelinePixel(MediaPipeline):
         if not self._is_pcmflux_capturing or self.pcmflux_module is None:
             return
 
-        if  new_bitrate <= 0 or self.audio_bitrate == new_bitrate:
+        if new_bitrate <= 0 or self.audio_bitrate == new_bitrate:
             return
 
         try:
-            await self.async_event_loop.run_in_executor(None, self.pcmflux_module.update_audio_bitrate, new_bitrate)
-            logger.info(f"Updated audio bitrate: {self.audio_bitrate // 1000} -> {new_bitrate // 1000} kbps")
+            await self.async_event_loop.run_in_executor(
+                None, self.pcmflux_module.update_audio_bitrate, new_bitrate
+            )
+            logger.info(
+                f"Updated audio bitrate: {self.audio_bitrate // 1000} -> {new_bitrate // 1000} kbps"
+            )
             self.audio_bitrate = new_bitrate
         except AttributeError:
             logger.error("Audio capture module does not support audio bitrate updation")
@@ -244,7 +266,9 @@ class MediaPipelinePixel(MediaPipeline):
                 return
 
             self.framerate = framerate
-            await self.async_event_loop.run_in_executor(None, self.capture_module.update_framerate, float(self.framerate))
+            await self.async_event_loop.run_in_executor(
+                None, self.capture_module.update_framerate, float(self.framerate)
+            )
             logger.info(f"Updated framerate to: {self.framerate}")
 
     async def dynamic_idr_frame(self):
@@ -252,7 +276,9 @@ class MediaPipelinePixel(MediaPipeline):
         if not self._is_screen_capturing or self.capture_module is None:
             return
         try:
-            await self.async_event_loop.run_in_executor(None, self.capture_module.request_idr_frame)
+            await self.async_event_loop.run_in_executor(
+                None, self.capture_module.request_idr_frame
+            )
             logger.info("IDR frame requested successfully")
         except AttributeError:
             logger.error("ScreenCapture module does not support IDR frame request")
@@ -280,7 +306,7 @@ class MediaPipelinePixel(MediaPipeline):
             cs.h264_bitrate_kbps = self.video_bitrate * 1000  # Convert Mbps to kbps
             cs.vaapi_render_node_index = -1
             if self.encoder_rtc == "x264enc":
-                cs.use_cpu = True        
+                cs.use_cpu = True
         return cs
 
     async def start_screen_capture(self):
@@ -288,27 +314,38 @@ class MediaPipelinePixel(MediaPipeline):
             return
 
         settings = self.generate_capture_settings()
+
         def screen_capture_callback(result_ptr, _):
             if not result_ptr:
                 return
             try:
                 result = result_ptr.contents
                 if result.size > 0:
-                    data_bytes = bytes(result.data[10:result.size])
+                    data_bytes = bytes(result.data[10 : result.size])
                     if not hasattr(result, "frame_id"):
-                        logger.error(f"frame_id from callback is empty: {result.frame_id}")
+                        logger.error(
+                            f"frame_id from callback is empty: {result.frame_id}"
+                        )
                     else:
                         # Generate pts from frame_id
                         pts_step = 90000 // self.framerate
                         pts = result.frame_id * pts_step
-                        asyncio.run_coroutine_threadsafe(self.produce_data(data_bytes, pts, "video"), self.async_event_loop)
+                        asyncio.run_coroutine_threadsafe(
+                            self.produce_data(data_bytes, pts, "video"),
+                            self.async_event_loop,
+                        )
 
             except Exception as e:
                 logger.error(f"Error in capture callback: {e}", exc_info=False)
 
         try:
             self.capture_module = ScreenCapture()
-            await self.async_event_loop.run_in_executor(None, self.capture_module.start_capture, settings, screen_capture_callback)
+            await self.async_event_loop.run_in_executor(
+                None,
+                self.capture_module.start_capture,
+                settings,
+                screen_capture_callback,
+            )
             self._is_screen_capturing = True
             logger.info("Started screen capture module")
         except Exception as e:
@@ -316,12 +353,13 @@ class MediaPipelinePixel(MediaPipeline):
             self.capture_module = None
             self._is_screen_capturing = False
 
-
     async def stop_screen_capture(self):
         if not self._is_screen_capturing or self.capture_module is None:
             return
         try:
-            await self.async_event_loop.run_in_executor(None, self.capture_module.stop_capture)
+            await self.async_event_loop.run_in_executor(
+                None, self.capture_module.stop_capture
+            )
             self.capture_module = None
             self._is_screen_capturing = False
             logger.info("Stopped screen capture module")
@@ -349,7 +387,11 @@ class MediaPipelinePixel(MediaPipeline):
         logger.info("Starting pcmflux audio pipeline...")
         try:
             capture_settings = AudioCaptureSettings()
-            device_name_bytes = self.audio_device_name.encode('utf-8') if self.audio_device_name else None
+            device_name_bytes = (
+                self.audio_device_name.encode("utf-8")
+                if self.audio_device_name
+                else None
+            )
             capture_settings.device_name = device_name_bytes
             capture_settings.sample_rate = 48000
             capture_settings.channels = self.audio_channels
@@ -361,8 +403,10 @@ class MediaPipelinePixel(MediaPipeline):
             capture_settings.debug_logging = False
             pcmflux_settings = capture_settings
 
-            logger.info(f"pcmflux settings: device='{self.audio_device_name}', "
-                        f"bitrate={capture_settings.opus_bitrate}, channels={capture_settings.channels}")
+            logger.info(
+                f"pcmflux settings: device='{self.audio_device_name}', "
+                f"bitrate={capture_settings.opus_bitrate}, channels={capture_settings.channels}"
+            )
 
             def audio_capture_callback(result_ptr, user_data):
                 if not result_ptr:
@@ -370,17 +414,28 @@ class MediaPipelinePixel(MediaPipeline):
                 try:
                     result = result_ptr.contents
                     if result.data and result.size > 0:
-                        data_bytes = bytes(ctypes.cast(
-                            result.data, ctypes.POINTER(ctypes.c_ubyte * result.size)
-                        ).contents)
+                        data_bytes = bytes(
+                            ctypes.cast(
+                                result.data,
+                                ctypes.POINTER(ctypes.c_ubyte * result.size),
+                            ).contents
+                        )
 
-                        asyncio.run_coroutine_threadsafe(self.produce_data(data_bytes, result.pts, "audio"), self.async_event_loop)
+                        asyncio.run_coroutine_threadsafe(
+                            self.produce_data(data_bytes, result.pts, "audio"),
+                            self.async_event_loop,
+                        )
                 except Exception as e:
                     logger.info(f"Error audio capture callback: {e}")
 
             pcmflux_callback = AudioChunkCallback(audio_capture_callback)
             self.pcmflux_module = AudioCapture()
-            await self.async_event_loop.run_in_executor(None, self.pcmflux_module.start_capture, pcmflux_settings, pcmflux_callback)
+            await self.async_event_loop.run_in_executor(
+                None,
+                self.pcmflux_module.start_capture,
+                pcmflux_settings,
+                pcmflux_callback,
+            )
             self._is_pcmflux_capturing = True
             logger.info("pcmflux audio capture started successfully.")
         except Exception as e:
@@ -396,7 +451,9 @@ class MediaPipelinePixel(MediaPipeline):
         self._is_pcmflux_capturing = False
         if self.pcmflux_module:
             try:
-                await self.async_event_loop.run_in_executor(None, self.pcmflux_module.stop_capture)
+                await self.async_event_loop.run_in_executor(
+                    None, self.pcmflux_module.stop_capture
+                )
             except Exception as e:
                 logger.error(f"Error during pcmflux stop_capture: {e}")
             finally:
