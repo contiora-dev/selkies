@@ -34,7 +34,6 @@ import uuid
 from dataclasses import dataclass
 
 import websockets
-import websockets.asyncio.server
 
 logger = logging.getLogger("signaling")
 web_logger = logging.getLogger("web")
@@ -235,11 +234,9 @@ class WebRTCSimpleServer(object):
             if headers.get(key) is not None:
                 del headers[key]
             headers[key] = value
-        return websockets.http11.Response(status.value, status.phrase, headers, body)
+        return (status.value, headers, body)
 
-    async def process_request(self, server_root, connection, request):
-        path = request.path
-        request_headers = request.headers
+    async def process_request(self, server_root, path, request_headers):
         response_headers = websockets.datastructures.Headers()
         username = ''
         if self.enable_basic_auth:
@@ -251,7 +248,7 @@ class WebRTCSimpleServer(object):
                 response_headers['WWW-Authenticate'] = 'Basic realm="restricted, charset="UTF-8"'
                 return self.http_response(http.HTTPStatus.UNAUTHORIZED, response_headers, b'Authorization required')
 
-        if path == "/ws/" or path == "/ws" or path.endswith("/signaling/") or path.endswith("/signaling"):
+        if path == "/ws/" or path == "/ws" or path == "/websockets" or path == "/websockets/" or path.endswith("/signaling/") or path.endswith("/signaling"):
             return None
 
         if path == self.health_path + "/" or path == self.health_path:
@@ -626,7 +623,7 @@ class WebRTCSimpleServer(object):
         # Websocket and HTTP server
         http_handler = functools.partial(self.process_request, self.web_root)
         self.stop_server = asyncio.Future()
-        async with websockets.asyncio.server.serve(handler, self.addr, self.port, ssl=sslctx, process_request=http_handler,
+        async with websockets.serve(handler, self.addr, self.port, ssl=sslctx, process_request=http_handler,
                                # Maximum number of messages that websockets will pop
                                # off the asyncio and OS buffers per connection. See:
                                # https://websockets.readthedocs.io/en/stable/api.html#websockets.protocol.WebSocketCommonProtocol

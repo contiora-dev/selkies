@@ -25,7 +25,6 @@ import json
 import logging
 import ssl
 import websockets
-import websockets.asyncio.client
 
 logger = logging.getLogger("signaling_client")
 logger.setLevel(logging.INFO)
@@ -83,7 +82,7 @@ class WebRTCSignaling:
         while not self.stop_event.is_set():
             try:
                 logger.info(f"Connecting to signaling server")
-                self.conn = await websockets.asyncio.client.connect(self.server, additional_headers=headers, ssl=sslctx)
+                self.conn = await websockets.connect(self.server, extra_headers=headers, ssl=sslctx)
 
                 await self.conn.send('HELLO {}'.format(self.peer_type))
                 await self.listen()
