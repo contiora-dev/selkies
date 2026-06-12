@@ -609,8 +609,12 @@ class WebRTCSimpleServer(object):
             finally:
                 await self.remove_peer(peer_id)
 
-        # Initial cache of web_root files
-        await asyncio.gather(*[self.cache_file(os.path.realpath(f)) for f in pathlib.Path(self.web_root).rglob('*.*')])
+        # Initial cache of web_root files (skip node_modules)
+        await asyncio.gather(*[
+            self.cache_file(os.path.realpath(f))
+            for f in pathlib.Path(self.web_root).rglob('*.*')
+            if 'node_modules' not in f.parts
+        ])
 
         sslctx = self.get_ssl_ctx(https_server=True)
 

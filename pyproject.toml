@@ -72,6 +72,7 @@ windows = [
     "screeninfo>=0.8",
     "pixelflux",
     "pcmflux",
+    "sounddevice",
 ]
 
 [tool.setuptools.packages.find]

@@ -118,3 +118,37 @@ def get_current_resolution():
     width = user32.GetSystemMetrics(0)
     height = user32.GetSystemMetrics(1)
     return width, height
+
+
+def set_cursor_size(size):
+    """Set Windows cursor size via registry (Windows 10/11 accessibility setting).
+
+    :param size: Cursor size in pixels (valid range is typically 16-512).
+    :returns: True on success, False on failure.
+    """
+    try:
+        import winreg
+        with winreg.OpenKey(
+            winreg.HKEY_CURRENT_USER,
+            r"Control Panel\Cursors",
+            0,
+            winreg.KEY_SET_VALUE,
+        ) as key:
+            winreg.SetValueEx(key, "CursorBaseSize", 0, winreg.REG_DWORD, int(size))
+
+        # Refresh cursor to apply change immediately
+        result = user32.SystemParametersInfoW(
+            0x0057,  # SPI_SETCURSORS
+            0,
+            None,
+            SPIF_UPDATEINIFILE | SPIF_SENDCHANGE,
+        )
+        if result:
+            logger.info(f"Set cursor size to {size}px")
+            return True
+        else:
+            logger.warning(f"Set cursor registry key to {size}px but SPI_SETCURSORS failed")
+            return True  # Registry change persists after reboot anyway
+    except Exception as e:
+        logger.error(f"Error setting cursor size: {e}")
+        return False

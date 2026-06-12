@@ -7,8 +7,12 @@ import os
 import logging
 import re
 import sys
+import tempfile
 
 IS_WINDOWS = sys.platform == "win32"
+
+# Use platform-appropriate temp directory defaults.
+_TMP = tempfile.gettempdir()
 
 # Settings Precedence and Naming Convention
 # -----------------------------------------
@@ -125,17 +129,17 @@ SETTING_DEFINITIONS_WEBSOCKETS = [
 ]
 
 SETTING_DEFINITIONS_WEBRTC = [
-    {'name': 'json_config', 'type': 'str', 'default': '/tmp/selkies_config.json', 'help': 'Path to the JSON file containing argument key-value pairs that are overlaid with CLI arguments or environment variables, this path must be writable'},
+    {'name': 'json_config', 'type': 'str', 'default': os.path.join(_TMP, 'selkies_config.json') if IS_WINDOWS else '/tmp/selkies_config.json', 'help': 'Path to the JSON file containing argument key-value pairs that are overlaid with CLI arguments or environment variables, this path must be writable'},
     {'name': 'addr', 'type': 'str', 'default': '0.0.0.0', 'help': 'Host to listen to for the signaling and web server, default: "0.0.0.0"'},
     {'name': 'port', 'type': 'int', 'default': 8081, 'help': 'Port to listen to for the signaling and web server, default: "8081"'},
-    {'name': 'web_root', 'type': 'str', 'default': '/opt/selkies-web', 'help': 'Path to directory containing web application files, default: "/opt/selkies-web"'},
+    {'name': 'web_root', 'type': 'str', 'default': '' if IS_WINDOWS else '/opt/selkies-web', 'help': 'Path to directory containing web application files, default: "/opt/selkies-web"'},
     {'name': 'enable_https', 'type': 'bool', 'default': False, 'help': 'Enable or disable HTTPS for the web application, specifying a valid server certificate is recommended'},
-    {'name': 'https_cert', 'type': 'str', 'default': '/etc/ssl/certs/ssl-cert-snakeoil.pem', 'help': 'Path to the TLS server certificate file when HTTPS is enabled'},
-    {'name': 'https_key', 'type': 'str', 'default': '/etc/ssl/private/ssl-cert-snakeoil.key', 'help': 'Path to the TLS server private key file when HTTPS is enabled, set to an empty value if the private key is included in the certificate'},
+    {'name': 'https_cert', 'type': 'str', 'default': '' if IS_WINDOWS else '/etc/ssl/certs/ssl-cert-snakeoil.pem', 'help': 'Path to the TLS server certificate file when HTTPS is enabled'},
+    {'name': 'https_key', 'type': 'str', 'default': '' if IS_WINDOWS else '/etc/ssl/private/ssl-cert-snakeoil.key', 'help': 'Path to the TLS server private key file when HTTPS is enabled, set to an empty value if the private key is included in the certificate'},
     {'name': 'enable_basic_auth', 'type': 'bool', 'default': True, 'help': 'Enable basic authentication on server, must set --basic_auth_password and optionally --basic_auth_user to enforce basic authentication'},
     {'name': 'basic_auth_user', 'type': 'str', 'default': 'ubuntu', 'help': 'Username for basic authentication, default is to use the USER environment variable or a blank username if not present, must also set --basic_auth_password to enforce basic authentication'},
     {'name': 'basic_auth_password', 'type': 'str', 'default': 'mypasswd', 'help': 'Password used when basic authentication is set'},
-    {'name': 'rtc_config_json', 'type': 'str', 'default': '/tmp/rtc.json', 'help': 'JSON file with WebRTC configuration to use, checked periodically, overriding all other STUN/TURN settings'},
+    {'name': 'rtc_config_json', 'type': 'str', 'default': os.path.join(_TMP, 'rtc.json') if IS_WINDOWS else '/tmp/rtc.json', 'help': 'JSON file with WebRTC configuration to use, checked periodically, overriding all other STUN/TURN settings'},
 
     # TURN/STUN
     {'name': 'turn_rest_uri', 'type': 'str', 'default': '', 'help': 'URI for TURN REST API service, example: http://localhost:8008'},
@@ -159,9 +163,9 @@ SETTING_DEFINITIONS_WEBRTC = [
 
     {'name': 'encoder_rtc', 'type': 'enum', 'default': 'nvh264enc' if IS_WINDOWS else 'x264enc', 'meta': {'allowed': ['av1enc', 'x264enc', 'nvh264enc', 'vp8enc']}, 'help': 'Video encoder to encode video media'},
     {'name': 'app_wait_ready', 'type': 'bool', 'default': False, 'help': 'Waits for --app_ready_file to exist before starting stream if set to "true"'},
-    {'name': 'app_ready_file', 'type': 'str', 'default': '/tmp/selkies-appready', 'help': 'File set by sidecar used to indicate that app is initialized and ready'},
+    {'name': 'app_ready_file', 'type': 'str', 'default': os.path.join(_TMP, 'selkies-appready') if IS_WINDOWS else '/tmp/selkies-appready', 'help': 'File set by sidecar used to indicate that app is initialized and ready'},
     {'name': 'uinput_mouse_socket', 'type': 'str', 'default': '', 'help': 'Path to the uinput mouse socket, if not provided uinput is used directly'},
-    {'name': 'js_socket_path', 'type': 'str', 'default': '/tmp', 'help': 'Directory to write the Selkies Joystick Interposer communication sockets to, default: /tmp, results in socket files: /tmp/selkies_js{0-3}.sock'},
+    {'name': 'js_socket_path', 'type': 'str', 'default': os.path.join(_TMP, 'selkies_js') if IS_WINDOWS else '/tmp', 'help': 'Directory to write the Selkies Joystick Interposer communication sockets to, default: /tmp, results in socket files: /tmp/selkies_js{0-3}.sock'},
     {'name': 'gpu_id', 'type': 'str', 'default': '0', 'help': 'GPU ID for hardware video encoders, will use enumerated GPU ID (0, 1, ..., n) for NVIDIA and /dev/dri/renderD{128 + n} for VA-API'},
     {'name': 'keyframe_distance', 'type': 'int', 'default': -1, 'help': 'Distance between video keyframes/GOP-frames in seconds, defaults to "-1" for infinite keyframe distance (ideal for low latency and preventing periodic blurs)'},
     {'name': 'congestion_control', 'type': 'bool', 'default': False, 'help': 'Enable Google Congestion Control (GCC), suggested if network conditions fluctuate and when bandwidth is >= 2 mbps but may lead to lower quality and microstutter due to adaptive bitrate in some encoders'},
@@ -174,7 +178,7 @@ SETTING_DEFINITIONS_WEBRTC = [
     {'name': 'debug_cursors', 'type': 'bool', 'default': False, 'help': 'Enable cursor debug logging'},
     {'name': 'cursor_size', 'type': 'int', 'default': -1, 'help': 'Cursor size in points for the local cursor, set instead XCURSOR_SIZE without of this argument to configure the cursor size for both the local and remote cursors'},
     {'name': 'enable_webrtc_statistics', 'type': 'bool', 'default': False, 'help': 'Enable WebRTC Statistics CSV dumping to the directory --webrtc_statistics_dir with filenames selkies-stats-video-[timestamp].csv and selkies-stats-audio-[timestamp].csv'},
-    {'name': 'webrtc_statistics_dir', 'type': 'str', 'default': '/tmp', 'help': 'Directory to save WebRTC Statistics CSV from client with filenames selkies-stats-video-[timestamp].csv and selkies-stats-audio-[timestamp].csv'},
+    {'name': 'webrtc_statistics_dir', 'type': 'str', 'default': os.path.join(_TMP, 'selkies-stats') if IS_WINDOWS else '/tmp', 'help': 'Directory to save WebRTC Statistics CSV from client with filenames selkies-stats-video-[timestamp].csv and selkies-stats-audio-[timestamp].csv'},
     {'name': 'enable_metrics_http', 'type': 'bool', 'default': False, 'help': 'Enable the Prometheus HTTP metrics port'},
     {'name': 'metrics_http_port', 'type': 'int', 'default': 8000, 'help': 'Port to start the Prometheus metrics server on'},
     {'name': 'upload_dir', 'type': 'str', 'default': '~/Desktop', 'help': "Directory to save the uploaded content, in absolute path format. Default to '~/Desktop' directory"},
@@ -194,8 +198,12 @@ class AppSettings:
 
     def _add_arguments(self, parser):
         """Programmatically add arguments to the parser from definitions."""
+        # Settings that only apply on Linux and should be hidden on Windows.
+        _LINUX_ONLY = {"wayland_socket_index", "dri_node", "uinput_mouse_socket"}
         for setting in self._setting_definitions:
             name = setting['name']
+            if IS_WINDOWS and name in _LINUX_ONLY:
+                continue
             cli_flag = f'--{name.replace("_", "-")}'
             standard_env_var = f'SELKIES_{name.upper()}'
             legacy_env_var = setting.get('env_var')
@@ -213,8 +221,16 @@ class AppSettings:
         """Process parsed arguments and set them as class attributes."""
         processed = {}
         overrides = {}
+        _LINUX_ONLY = {"wayland_socket_index", "dri_node", "uinput_mouse_socket"}
         for setting in self._setting_definitions:
             name = setting['name']
+            if IS_WINDOWS and name in _LINUX_ONLY:
+                # Set sensible no-op defaults so downstream code doesn't crash.
+                if setting['type'] == 'int':
+                    setattr(self, name, 0)
+                else:
+                    setattr(self, name, '')
+                continue
             stype = setting['type']
             cli_val = getattr(args, name, None)
             std_env_val = os.environ.get(f'SELKIES_{name.upper()}')

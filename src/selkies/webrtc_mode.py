@@ -183,7 +183,7 @@ class WebRTCApp:
         self.input_handler = WebRTCInput(
             gst_webrtc_app=self.rtc_app,
             uinput_mouse_socket_path="",
-            js_socket_path_prefix="/tmp",
+            js_socket_path_prefix=self.args.js_socket_path,
             enable_clipboard=self.args.enable_clipboard,
             enable_binary_clipboard="true"
             if self.args.enable_binary_clipboard

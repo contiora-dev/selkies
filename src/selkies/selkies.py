@@ -30,6 +30,9 @@ GPU_ID_DEFAULT = 0
 PIXELFLUX_VIDEO_ENCODERS = ["jpeg", "x264enc", "x264enc-striped"]
 IS_WAYLAND = os.environ.get("PIXELFLUX_WAYLAND", "false").lower() == "true"
 
+import sys
+IS_WINDOWS = sys.platform == "win32"
+
 import logging
 LOGLEVEL = logging.INFO
 logging.basicConfig(level=LOGLEVEL)
@@ -53,7 +56,6 @@ import re
 import struct
 from asyncio import subprocess
 import urllib.parse
-import sys
 import time
 import io
 from enum import Enum
@@ -82,9 +84,20 @@ try:
     PULSEAUDIO_AVAILABLE = True
 except ImportError:
     PULSEAUDIO_AVAILABLE = False
-    data_logger.warning(
-        "pulsectl or pasimple not found. Microphone forwarding will be disabled."
-    )
+    if not IS_WINDOWS:
+        data_logger.warning(
+            "pulsectl or pasimple not found. Microphone forwarding will be disabled."
+        )
+
+try:
+    import sounddevice as sd
+    SOUNDDEVICE_AVAILABLE = True
+except ImportError:
+    SOUNDDEVICE_AVAILABLE = False
+    if IS_WINDOWS:
+        data_logger.warning(
+            "sounddevice not found. Microphone forwarding will be disabled on Windows."
+        )
 
 try:
     from pixelflux import CaptureSettings, ScreenCapture, StripeCallback
@@ -1755,6 +1768,64 @@ class DataStreamingServer:
                     elif msg_type == 0x02:  # Mic data
                         if not settings.microphone_enabled[0]:
                             continue
+
+                        # Windows: use sounddevice for microphone forwarding
+                        if IS_WINDOWS:
+                            if not SOUNDDEVICE_AVAILABLE:
+                                if len(payload) > 0:
+                                    data_logger.warning(
+                                        "sounddevice library not available. Skipping microphone data on Windows."
+                                    )
+                                continue
+                            if not payload:
+                                continue
+
+                            if (
+                                "win_mic_stream" not in locals()
+                                or locals()["win_mic_stream"] is None
+                            ):
+                                try:
+                                    data_logger.info(
+                                        "Opening Windows audio playback stream for microphone forwarding (24000 Hz, int16, mono)."
+                                    )
+                                    win_mic_stream = sd.RawOutputStream(
+                                        samplerate=24000,
+                                        channels=1,
+                                        dtype="int16",
+                                        latency="high",
+                                    )
+                                    win_mic_stream.start()
+                                    data_logger.info(
+                                        "Windows microphone playback stream started successfully."
+                                    )
+                                except Exception as e_sd:
+                                    data_logger.error(
+                                        f"Failed to open sounddevice output stream: {e_sd}",
+                                        exc_info=True,
+                                    )
+                                    continue
+
+                            try:
+                                asyncio.get_running_loop().run_in_executor(
+                                    None, win_mic_stream.write, payload
+                                )
+                            except Exception as e_sd_write:
+                                data_logger.error(
+                                    f"sounddevice stream write error: {e_sd_write}",
+                                    exc_info=False,
+                                )
+                                if (
+                                    "win_mic_stream" in locals()
+                                    and locals()["win_mic_stream"]
+                                ):
+                                    try:
+                                        locals()["win_mic_stream"].stop()
+                                        locals()["win_mic_stream"].close()
+                                    except:
+                                        pass
+                                    win_mic_stream = None
+                            continue
+
                         if not PULSEAUDIO_AVAILABLE:
                             if len(payload) > 0:
                                 data_logger.warning(
@@ -2618,6 +2689,16 @@ class DataStreamingServer:
                 else:
                     data_logger.info(
                         f"Client {raddr} disconnected, but other clients remain. Frame backpressure task continues."
+                    )
+
+            if "win_mic_stream" in locals() and locals()["win_mic_stream"]:
+                try:
+                    locals()["win_mic_stream"].stop()
+                    locals()["win_mic_stream"].close()
+                    data_logger.debug(f"Closed Windows sounddevice mic stream for {raddr}.")
+                except Exception as e_sd_close:
+                    data_logger.error(
+                        f"Error closing Windows sounddevice mic stream for {raddr}: {e_sd_close}"
                     )
 
             if "pa_stream" in locals() and locals()["pa_stream"]:

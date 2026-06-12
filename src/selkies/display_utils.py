@@ -431,8 +431,15 @@ async def set_dpi(dpi_setting):
 
 async def set_cursor_size(size):
     if IS_WINDOWS:
-        logger_app_resize.info(f"Cursor size setting not yet implemented for Windows: {size}")
-        return True
+        from .windows.win_display import set_cursor_size as win_set_cursor_size
+        try:
+            if not isinstance(size, int) or size <= 0:
+                logger_app_resize.error(f"Invalid cursor size: {size}")
+                return False
+            return win_set_cursor_size(size)
+        except Exception as e:
+            logger_app_resize.error(f"Windows cursor size setting failed: {e}")
+            return False
 
     if not isinstance(size, int) or size <= 0:
         logger_app_resize.error(f"Invalid cursor size: {size}")
