@@ -1,6 +1,6 @@
 ---
 title: Web Client and Dashboards
-description: The bundled HTML5 client, the dashboard and its two layouts, the on-screen touch gamepad, and the settings that shape what the interface shows.
+description: The bundled HTML5 client, the dashboard and its three layouts, the on-screen touch gamepad, and the settings that shape what the interface shows.
 ---
 
 ## Web Client
@@ -13,14 +13,15 @@ The core is embeddable in any HTML5 page and is what a custom interface builds o
 
 ## Dashboard
 
-One dashboard ships with the client, [`selkies-dashboard`](https://github.com/selkies-project/selkies/tree/main/addons/selkies-dashboard): React and TypeScript over the core's `window` messaging, with one set of panels (the video, screen, and audio settings, stats, shortcuts, clipboard, files, printing, apps, sharing, and gamepads) and the stream toggles for the display, audio, microphone, webcam, and gamepad, painted by one of two layouts:
+One dashboard ships with the client, [`selkies-dashboard`](https://github.com/selkies-project/selkies/tree/main/addons/selkies-dashboard): React and TypeScript over the core's `window` messaging, with one set of panels (the video, screen, and audio settings, stats, shortcuts, clipboard, files, printing, apps, sharing, and gamepads) and the stream toggles for the display, audio, microphone, webcam, and gamepad, painted by one of three layouts:
 
 | Layout | `ui_layout` | What it draws |
 | --- | --- | --- |
 | Sidebar | `default` | A drawer on the left edge, opened by the handle there or by `Control + Shift + M`, with the toggles as a row of tiles and every panel as a section below |
 | Toolbar | `wish` | A floating bar along the top edge, dragged where it suits, with the panels in its menus, the settings hanging under it as tabs, and the stats and gamepads as floating panels |
+| Edge | `edge` | The toolbar's bar pinned to an edge of the window, the top to begin with and stepped clockwise to the right, bottom, and left edges by a button on the bar (kept per browser; a row on the top and bottom, a column on the sides), with the panels in its menus, the settings hanging against it, the stats and gamepads as floating panels, and the floating stats' gauges for frame rate, bandwidth, round trip, and the host's load along it |
 
-Both layouts carry a toggle that switches to the other, beside the dark and light theme toggle; the pick is kept per browser. `--ui-layout` names the layout a page starts with, and listing one value alone locks it. A layout is a component that arranges the panels, so another is one entry in the dashboard's layout registry; the panels know nothing of where they are painted.
+Every layout carries a toggle that steps to the next, beside the dark and light theme toggle; the pick is kept per browser. `--ui-layout` names the layout a page starts with, and listing one value alone locks it. A layout is a component that arranges the panels, so another is one entry in the dashboard's layout registry; the panels know nothing of where they are painted.
 
 What the shipped interface *shows* is a server setting rather than a build: `--ui-title` and `--ui-show-logo` name and brand the dashboard's header, `--ui-show-sidebar` and `--ui-show-core-buttons` drop the chrome or its device toggles entirely, and one `--ui-sidebar-show-<section>` flag per panel — video, screen, and audio settings, stats, shortcuts, clipboard, files, apps, sharing, gamepads, webcam, fullscreen, gaming mode, trackpad, keyboard button, soft buttons — hides just that one in either layout. These govern the page only: the capability behind a hidden control keeps working, so the feature's own setting (`--webcam-enabled`, `--file-transfers`, `--enable-sharing`) is what actually turns it off. The [Settings Reference](../settings.md#client-interface) lists them.
 

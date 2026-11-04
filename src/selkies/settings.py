@@ -446,8 +446,8 @@ SETTING_DEFINITIONS: List[Dict[str, Any]] = [
         "name": "ui_layout",
         "type": "enum",
         "default": "default",
-        "meta": {"allowed": ["default", "wish"]},
-        "help": 'How the dashboard arranges its panels: "default" is the sidebar, a drawer on the left edge with every panel as a section; "wish" is the toolbar, a floating bar along the top edge with the panels in its menus. The first value listed is what a page shows until its user picks the other with the layout toggle, which the page keeps per browser; a single value locks the layout and hides the toggle.',
+        "meta": {"allowed": ["default", "wish", "edge"]},
+        "help": 'How the dashboard arranges its panels: "default" is the sidebar, a drawer on the left edge with every panel as a section; "wish" is the toolbar, a floating bar along the top edge with the panels in its menus; "edge" is a developer\'s bar, the toolbar pinned to the top edge, which the user can move to the right, bottom, or left edge, with the stream\'s live figures in view along it. The first value listed is what a page shows until its user picks another with the layout toggle, which the page keeps per browser; a single value locks the layout and hides the toggle.',
     },
     {
         "name": "ui_show_connection_indicator",

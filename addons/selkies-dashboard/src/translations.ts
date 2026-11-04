@@ -214,6 +214,8 @@ const en: Dictionary = {
         retryButton: "Retry",
         searchPlaceholder: "Search apps...",
         noAppsFound: "No apps found matching your search.",
+        categoryLabel: "Category",
+        allCategories: "All categories",
         backButton: "Back to list",
         installedBadge: "Installed",
         commandsDisabled: "App installation is unavailable: remote commands are disabled on this server (SELKIES_COMMAND_ENABLED).",
@@ -265,6 +267,8 @@ const en: Dictionary = {
         dragHandle: "Drag handle",
         menu: "Menu",
         hideToolbar: "Hide toolbar",
+        figuresStrip: "Figures strip",
+        translucentPanels: "Translucent panels",
         showToolbar: "Show toolbar",
     },
     settingsTabs: {
@@ -354,6 +358,11 @@ const en: Dictionary = {
         title: "Layout",
         default: "Sidebar",
         wish: "Toolbar",
+        edge: "Edge",
+        edgeMoveTop: "Move to top",
+        edgeMoveBottom: "Move to bottom",
+        edgeMoveLeft: "Move to left",
+        edgeMoveRight: "Move to right",
     },
 };
 
@@ -557,6 +566,8 @@ const es: Dictionary = {
         retryButton: "Reintentar",
         searchPlaceholder: "Buscar aplicaciones...",
         noAppsFound: "No se encontraron aplicaciones que coincidan con tu búsqueda.",
+        categoryLabel: "Categoría",
+        allCategories: "Todas las categorías",
         backButton: "Volver a la lista",
         installedBadge: "Instalado",
         commandsDisabled: "La instalación de aplicaciones no está disponible: los comandos remotos están deshabilitados en este servidor (SELKIES_COMMAND_ENABLED).",
@@ -608,6 +619,8 @@ const es: Dictionary = {
         dragHandle: "Asa de arrastre",
         menu: "Menú",
         hideToolbar: "Ocultar barra de herramientas",
+        figuresStrip: "Banda de cifras",
+        translucentPanels: "Paneles traslúcidos",
         showToolbar: "Mostrar barra de herramientas",
     },
     settingsTabs: {
@@ -697,6 +710,11 @@ const es: Dictionary = {
         title: "Diseño",
         default: "Barra lateral",
         wish: "Barra de herramientas",
+        edge: "Borde",
+        edgeMoveTop: "Mover arriba",
+        edgeMoveBottom: "Mover abajo",
+        edgeMoveLeft: "Mover a la izquierda",
+        edgeMoveRight: "Mover a la derecha",
     },
 };
 
@@ -900,6 +918,8 @@ const zh_cn: Dictionary = {
         retryButton: "重试",
         searchPlaceholder: "搜索应用程序...",
         noAppsFound: "未找到与您的搜索匹配的应用程序。",
+        categoryLabel: "分类",
+        allCategories: "所有分类",
         backButton: "返回列表",
         installedBadge: "已安装",
         commandsDisabled: "应用安装不可用：此服务器已禁用远程命令（SELKIES_COMMAND_ENABLED）。",
@@ -951,6 +971,8 @@ const zh_cn: Dictionary = {
         dragHandle: "拖动手柄",
         menu: "菜单",
         hideToolbar: "隐藏工具栏",
+        figuresStrip: "数值条",
+        translucentPanels: "半透明面板",
         showToolbar: "显示工具栏",
     },
     settingsTabs: {
@@ -1040,6 +1062,11 @@ const zh_cn: Dictionary = {
         title: "布局",
         default: "侧边栏",
         wish: "工具栏",
+        edge: "边缘",
+        edgeMoveTop: "移到顶部",
+        edgeMoveBottom: "移到底部",
+        edgeMoveLeft: "移到左侧",
+        edgeMoveRight: "移到右侧",
     },
 };
 
@@ -1243,6 +1270,8 @@ const zh_tw: Dictionary = {
         retryButton: "重試",
         searchPlaceholder: "搜尋應用程式...",
         noAppsFound: "沒有找到任何相關軟體。",
+        categoryLabel: "分類",
+        allCategories: "所有分類",
         backButton: "回到列表",
         installedBadge: "已安裝",
         commandsDisabled: "無法安裝應用程式：此伺服器已停用遠端指令（SELKIES_COMMAND_ENABLED）。",
@@ -1294,6 +1323,8 @@ const zh_tw: Dictionary = {
         dragHandle: "拖曳把手",
         menu: "選單",
         hideToolbar: "隱藏工具列",
+        figuresStrip: "數值條",
+        translucentPanels: "半透明面板",
         showToolbar: "顯示工具列",
     },
     settingsTabs: {
@@ -1383,6 +1414,11 @@ const zh_tw: Dictionary = {
         title: "版面配置",
         default: "側邊欄",
         wish: "工具列",
+        edge: "邊緣",
+        edgeMoveTop: "移到頂部",
+        edgeMoveBottom: "移到底部",
+        edgeMoveLeft: "移到左側",
+        edgeMoveRight: "移到右側",
     },
 };
 
@@ -1586,6 +1622,8 @@ const hi: Dictionary = {
         retryButton: "पुनः प्रयास करें",
         searchPlaceholder: "ऐप्स खोजें...",
         noAppsFound: "आपकी खोज से मेल खाने वाले कोई ऐप्स नहीं मिले।",
+        categoryLabel: "श्रेणी",
+        allCategories: "सभी श्रेणियाँ",
         backButton: "सूची पर वापस जाएं",
         installedBadge: "इंस्टॉल किया गया",
         commandsDisabled: "ऐप इंस्टॉलेशन उपलब्ध नहीं है: इस सर्वर पर रिमोट कमांड अक्षम हैं (SELKIES_COMMAND_ENABLED)।",
@@ -1637,6 +1675,8 @@ const hi: Dictionary = {
         dragHandle: "ड्रैग हैंडल",
         menu: "मेनू",
         hideToolbar: "टूलबार छिपाएँ",
+        figuresStrip: "आंकड़ों की पट्टी",
+        translucentPanels: "अर्ध-पारदर्शी पैनल",
         showToolbar: "टूलबार दिखाएँ",
     },
     settingsTabs: {
@@ -1726,6 +1766,11 @@ const hi: Dictionary = {
         title: "लेआउट",
         default: "साइडबार",
         wish: "टूलबार",
+        edge: "किनारा",
+        edgeMoveTop: "ऊपर ले जाएँ",
+        edgeMoveBottom: "नीचे ले जाएँ",
+        edgeMoveLeft: "बाईं ओर ले जाएँ",
+        edgeMoveRight: "दाईं ओर ले जाएँ",
     },
 };
 
@@ -1929,6 +1974,8 @@ const pt: Dictionary = {
         retryButton: "Tentar novamente",
         searchPlaceholder: "Buscar aplicativos...",
         noAppsFound: "Nenhum aplicativo encontrado correspondente à sua busca.",
+        categoryLabel: "Categoria",
+        allCategories: "Todas as categorias",
         backButton: "Voltar para a lista",
         installedBadge: "Instalado",
         commandsDisabled: "A instalação de aplicativos está indisponível: os comandos remotos estão desativados neste servidor (SELKIES_COMMAND_ENABLED).",
@@ -1980,6 +2027,8 @@ const pt: Dictionary = {
         dragHandle: "Alça de arrastar",
         menu: "Menu",
         hideToolbar: "Ocultar barra de ferramentas",
+        figuresStrip: "Faixa de valores",
+        translucentPanels: "Painéis translúcidos",
         showToolbar: "Mostrar barra de ferramentas",
     },
     settingsTabs: {
@@ -2069,6 +2118,11 @@ const pt: Dictionary = {
         title: "Layout",
         default: "Barra lateral",
         wish: "Barra de ferramentas",
+        edge: "Borda",
+        edgeMoveTop: "Mover para o topo",
+        edgeMoveBottom: "Mover para baixo",
+        edgeMoveLeft: "Mover para a esquerda",
+        edgeMoveRight: "Mover para a direita",
     },
 };
 
@@ -2272,6 +2326,8 @@ const fr: Dictionary = {
         retryButton: "Réessayer",
         searchPlaceholder: "Rechercher des applications...",
         noAppsFound: "Aucune application trouvée correspondant à votre recherche.",
+        categoryLabel: "Catégorie",
+        allCategories: "Toutes les catégories",
         backButton: "Retour à la liste",
         installedBadge: "Installé",
         commandsDisabled: "L'installation d'applications est indisponible : les commandes à distance sont désactivées sur ce serveur (SELKIES_COMMAND_ENABLED).",
@@ -2323,6 +2379,8 @@ const fr: Dictionary = {
         dragHandle: "Poignée de déplacement",
         menu: "Menu",
         hideToolbar: "Masquer la barre d'outils",
+        figuresStrip: "Bande des valeurs",
+        translucentPanels: "Panneaux translucides",
         showToolbar: "Afficher la barre d'outils",
     },
     settingsTabs: {
@@ -2412,6 +2470,11 @@ const fr: Dictionary = {
         title: "Disposition",
         default: "Barre latérale",
         wish: "Barre d'outils",
+        edge: "Bord",
+        edgeMoveTop: "Déplacer en haut",
+        edgeMoveBottom: "Déplacer en bas",
+        edgeMoveLeft: "Déplacer à gauche",
+        edgeMoveRight: "Déplacer à droite",
     },
 };
 
@@ -2615,6 +2678,8 @@ const ru: Dictionary = {
         retryButton: "Повторить",
         searchPlaceholder: "Поиск приложений...",
         noAppsFound: "Приложения, соответствующие вашему поиску, не найдены.",
+        categoryLabel: "Категория",
+        allCategories: "Все категории",
         backButton: "Назад к списку",
         installedBadge: "Установлено",
         commandsDisabled: "Установка приложений недоступна: удалённые команды на этом сервере отключены (SELKIES_COMMAND_ENABLED).",
@@ -2666,6 +2731,8 @@ const ru: Dictionary = {
         dragHandle: "Ручка перетаскивания",
         menu: "Меню",
         hideToolbar: "Скрыть панель инструментов",
+        figuresStrip: "Полоса показателей",
+        translucentPanels: "Полупрозрачные панели",
         showToolbar: "Показать панель инструментов",
     },
     settingsTabs: {
@@ -2755,6 +2822,11 @@ const ru: Dictionary = {
         title: "Расположение",
         default: "Боковая панель",
         wish: "Панель инструментов",
+        edge: "Край",
+        edgeMoveTop: "Переместить вверх",
+        edgeMoveBottom: "Переместить вниз",
+        edgeMoveLeft: "Переместить влево",
+        edgeMoveRight: "Переместить вправо",
     },
 };
 
@@ -2958,6 +3030,8 @@ const de: Dictionary = {
         retryButton: "Erneut versuchen",
         searchPlaceholder: "Anwendungen suchen...",
         noAppsFound: "Keine Anwendungen gefunden, die Ihrer Suche entsprechen.",
+        categoryLabel: "Kategorie",
+        allCategories: "Alle Kategorien",
         backButton: "Zurück zur Liste",
         installedBadge: "Installiert",
         commandsDisabled: "Die App-Installation ist nicht verfügbar: Remote-Befehle sind auf diesem Server deaktiviert (SELKIES_COMMAND_ENABLED).",
@@ -3009,6 +3083,8 @@ const de: Dictionary = {
         dragHandle: "Ziehgriff",
         menu: "Menü",
         hideToolbar: "Symbolleiste ausblenden",
+        figuresStrip: "Zahlenleiste",
+        translucentPanels: "Durchscheinende Flächen",
         showToolbar: "Symbolleiste einblenden",
     },
     settingsTabs: {
@@ -3098,6 +3174,11 @@ const de: Dictionary = {
         title: "Layout",
         default: "Seitenleiste",
         wish: "Werkzeugleiste",
+        edge: "Rand",
+        edgeMoveTop: "Nach oben verschieben",
+        edgeMoveBottom: "Nach unten verschieben",
+        edgeMoveLeft: "Nach links verschieben",
+        edgeMoveRight: "Nach rechts verschieben",
     },
 };
 
@@ -3301,6 +3382,8 @@ const tr: Dictionary = {
         retryButton: "Tekrar dene",
         searchPlaceholder: "Uygulama ara...",
         noAppsFound: "Aramanızla eşleşen uygulama bulunamadı.",
+        categoryLabel: "Kategori",
+        allCategories: "Tüm kategoriler",
         backButton: "Listeye geri dön",
         installedBadge: "Yüklendi",
         commandsDisabled: "Uygulama kurulumu kullanılamıyor: bu sunucuda uzaktan komutlar devre dışı (SELKIES_COMMAND_ENABLED).",
@@ -3352,6 +3435,8 @@ const tr: Dictionary = {
         dragHandle: "Sürükleme tutamacı",
         menu: "Menü",
         hideToolbar: "Araç çubuğunu gizle",
+        figuresStrip: "Değer şeridi",
+        translucentPanels: "Yarı saydam paneller",
         showToolbar: "Araç çubuğunu göster",
     },
     settingsTabs: {
@@ -3441,6 +3526,11 @@ const tr: Dictionary = {
         title: "Düzen",
         default: "Kenar çubuğu",
         wish: "Araç çubuğu",
+        edge: "Kenar",
+        edgeMoveTop: "Üste taşı",
+        edgeMoveBottom: "Alta taşı",
+        edgeMoveLeft: "Sola taşı",
+        edgeMoveRight: "Sağa taşı",
     },
 };
 
@@ -3644,6 +3734,8 @@ const it: Dictionary = {
         retryButton: "Riprova",
         searchPlaceholder: "Cerca applicazioni...",
         noAppsFound: "Nessuna applicazione trovata corrispondente alla tua ricerca.",
+        categoryLabel: "Categoria",
+        allCategories: "Tutte le categorie",
         backButton: "Torna alla lista",
         installedBadge: "Installato",
         commandsDisabled: "L'installazione delle app non è disponibile: i comandi remoti sono disabilitati su questo server (SELKIES_COMMAND_ENABLED).",
@@ -3695,6 +3787,8 @@ const it: Dictionary = {
         dragHandle: "Maniglia di trascinamento",
         menu: "Menu",
         hideToolbar: "Nascondi barra degli strumenti",
+        figuresStrip: "Striscia dei valori",
+        translucentPanels: "Pannelli traslucidi",
         showToolbar: "Mostra barra degli strumenti",
     },
     settingsTabs: {
@@ -3784,6 +3878,11 @@ const it: Dictionary = {
         title: "Layout",
         default: "Barra laterale",
         wish: "Barra degli strumenti",
+        edge: "Bordo",
+        edgeMoveTop: "Sposta in alto",
+        edgeMoveBottom: "Sposta in basso",
+        edgeMoveLeft: "Sposta a sinistra",
+        edgeMoveRight: "Sposta a destra",
     },
 };
 
@@ -3987,6 +4086,8 @@ const nl: Dictionary = {
         retryButton: "Opnieuw proberen",
         searchPlaceholder: "Zoek applicaties...",
         noAppsFound: "Geen applicaties gevonden die overeenkomen met uw zoekopdracht.",
+        categoryLabel: "Categorie",
+        allCategories: "Alle categorieën",
         backButton: "Terug naar lijst",
         installedBadge: "Geïnstalleerd",
         commandsDisabled: "App-installatie is niet beschikbaar: externe opdrachten zijn uitgeschakeld op deze server (SELKIES_COMMAND_ENABLED).",
@@ -4038,6 +4139,8 @@ const nl: Dictionary = {
         dragHandle: "Sleepgreep",
         menu: "Menu",
         hideToolbar: "Werkbalk verbergen",
+        figuresStrip: "Cijferbalk",
+        translucentPanels: "Doorschijnende panelen",
         showToolbar: "Werkbalk tonen",
     },
     settingsTabs: {
@@ -4127,6 +4230,11 @@ const nl: Dictionary = {
         title: "Indeling",
         default: "Zijbalk",
         wish: "Werkbalk",
+        edge: "Rand",
+        edgeMoveTop: "Naar boven verplaatsen",
+        edgeMoveBottom: "Naar beneden verplaatsen",
+        edgeMoveLeft: "Naar links verplaatsen",
+        edgeMoveRight: "Naar rechts verplaatsen",
     },
 };
 
@@ -4330,6 +4438,8 @@ const ar: Dictionary = {
         retryButton: "إعادة المحاولة",
         searchPlaceholder: "البحث في التطبيقات...",
         noAppsFound: "لم يتم العثور على تطبيقات تطابق بحثك.",
+        categoryLabel: "الفئة",
+        allCategories: "كل الفئات",
         backButton: "العودة إلى القائمة",
         installedBadge: "مثبت",
         commandsDisabled: "تثبيت التطبيق غير متاح: الأوامر عن بُعد معطلة على هذا الخادم (SELKIES_COMMAND_ENABLED).",
@@ -4381,6 +4491,8 @@ const ar: Dictionary = {
         dragHandle: "مقبض السحب",
         menu: "القائمة",
         hideToolbar: "إخفاء شريط الأدوات",
+        figuresStrip: "شريط الأرقام",
+        translucentPanels: "ألواح شبه شفافة",
         showToolbar: "إظهار شريط الأدوات",
     },
     settingsTabs: {
@@ -4470,6 +4582,11 @@ const ar: Dictionary = {
         title: "التخطيط",
         default: "الشريط الجانبي",
         wish: "شريط الأدوات",
+        edge: "الحافة",
+        edgeMoveTop: "نقل إلى الأعلى",
+        edgeMoveBottom: "نقل إلى الأسفل",
+        edgeMoveLeft: "نقل إلى اليسار",
+        edgeMoveRight: "نقل إلى اليمين",
     },
 };
 
@@ -4673,6 +4790,8 @@ const ko: Dictionary = {
         retryButton: "다시 시도",
         searchPlaceholder: "앱 검색...",
         noAppsFound: "검색과 일치하는 앱을 찾을 수 없습니다.",
+        categoryLabel: "카테고리",
+        allCategories: "모든 카테고리",
         backButton: "목록으로 돌아가기",
         installedBadge: "설치됨",
         commandsDisabled: "앱 설치를 사용할 수 없습니다: 이 서버에서 원격 명령이 비활성화되어 있습니다 (SELKIES_COMMAND_ENABLED).",
@@ -4724,6 +4843,8 @@ const ko: Dictionary = {
         dragHandle: "드래그 핸들",
         menu: "메뉴",
         hideToolbar: "도구 모음 숨기기",
+        figuresStrip: "수치 스트립",
+        translucentPanels: "반투명 패널",
         showToolbar: "도구 모음 표시",
     },
     settingsTabs: {
@@ -4813,6 +4934,11 @@ const ko: Dictionary = {
         title: "레이아웃",
         default: "사이드바",
         wish: "도구 모음",
+        edge: "가장자리",
+        edgeMoveTop: "위로 이동",
+        edgeMoveBottom: "아래로 이동",
+        edgeMoveLeft: "왼쪽으로 이동",
+        edgeMoveRight: "오른쪽으로 이동",
     },
 };
 
@@ -5016,6 +5142,8 @@ const ja: Dictionary = {
         retryButton: "再試行",
         searchPlaceholder: "アプリを検索...",
         noAppsFound: "検索に一致するアプリが見つかりません。",
+        categoryLabel: "カテゴリ",
+        allCategories: "すべてのカテゴリ",
         backButton: "リストに戻る",
         installedBadge: "インストール済み",
         commandsDisabled: "アプリのインストールは利用できません：このサーバーでリモートコマンドが無効になっています（SELKIES_COMMAND_ENABLED）。",
@@ -5067,6 +5195,8 @@ const ja: Dictionary = {
         dragHandle: "ドラッグハンドル",
         menu: "メニュー",
         hideToolbar: "ツールバーを隠す",
+        figuresStrip: "数値ストリップ",
+        translucentPanels: "半透明パネル",
         showToolbar: "ツールバーを表示",
     },
     settingsTabs: {
@@ -5156,6 +5286,11 @@ const ja: Dictionary = {
         title: "レイアウト",
         default: "サイドバー",
         wish: "ツールバー",
+        edge: "エッジ",
+        edgeMoveTop: "上へ移動",
+        edgeMoveBottom: "下へ移動",
+        edgeMoveLeft: "左へ移動",
+        edgeMoveRight: "右へ移動",
     },
 };
 
@@ -5359,6 +5494,8 @@ const vi: Dictionary = {
         retryButton: "Thử lại",
         searchPlaceholder: "Tìm kiếm ứng dụng...",
         noAppsFound: "Không tìm thấy ứng dụng nào khớp với tìm kiếm của bạn.",
+        categoryLabel: "Danh mục",
+        allCategories: "Tất cả danh mục",
         backButton: "Quay lại danh sách",
         installedBadge: "Đã cài đặt",
         commandsDisabled: "Không thể cài đặt ứng dụng: các lệnh từ xa đã bị tắt trên máy chủ này (SELKIES_COMMAND_ENABLED).",
@@ -5410,6 +5547,8 @@ const vi: Dictionary = {
         dragHandle: "Tay kéo",
         menu: "Menu",
         hideToolbar: "Ẩn thanh công cụ",
+        figuresStrip: "Dải số liệu",
+        translucentPanels: "Bảng mờ trong",
         showToolbar: "Hiện thanh công cụ",
     },
     settingsTabs: {
@@ -5499,6 +5638,11 @@ const vi: Dictionary = {
         title: "Bố cục",
         default: "Thanh bên",
         wish: "Thanh công cụ",
+        edge: "Cạnh",
+        edgeMoveTop: "Chuyển lên trên",
+        edgeMoveBottom: "Chuyển xuống dưới",
+        edgeMoveLeft: "Chuyển sang trái",
+        edgeMoveRight: "Chuyển sang phải",
     },
 };
 
@@ -5702,6 +5846,8 @@ const th: Dictionary = {
         retryButton: "ลองอีกครั้ง",
         searchPlaceholder: "ค้นหาแอป...",
         noAppsFound: "ไม่พบแอปที่ตรงกับการค้นหาของคุณ",
+        categoryLabel: "หมวดหมู่",
+        allCategories: "ทุกหมวดหมู่",
         backButton: "กลับไปที่รายการ",
         installedBadge: "ติดตั้งแล้ว",
         commandsDisabled: "การติดตั้งแอปไม่พร้อมใช้งาน: คำสั่งระยะไกลถูกปิดใช้งานบนเซิร์ฟเวอร์นี้ (SELKIES_COMMAND_ENABLED)",
@@ -5753,6 +5899,8 @@ const th: Dictionary = {
         dragHandle: "ที่จับสำหรับลาก",
         menu: "เมนู",
         hideToolbar: "ซ่อนแถบเครื่องมือ",
+        figuresStrip: "แถบตัวเลข",
+        translucentPanels: "แผงโปร่งแสง",
         showToolbar: "แสดงแถบเครื่องมือ",
     },
     settingsTabs: {
@@ -5842,6 +5990,11 @@ const th: Dictionary = {
         title: "เค้าโครง",
         default: "แถบด้านข้าง",
         wish: "แถบเครื่องมือ",
+        edge: "ขอบ",
+        edgeMoveTop: "ย้ายไปด้านบน",
+        edgeMoveBottom: "ย้ายไปด้านล่าง",
+        edgeMoveLeft: "ย้ายไปด้านซ้าย",
+        edgeMoveRight: "ย้ายไปด้านขวา",
     },
 };
 
@@ -6045,6 +6198,8 @@ const fil: Dictionary = {
         retryButton: "Subukang muli",
         searchPlaceholder: "Maghanap ng mga app...",
         noAppsFound: "Walang nahanap na app na tumutugma sa iyong paghahanap.",
+        categoryLabel: "Kategorya",
+        allCategories: "Lahat ng kategorya",
         backButton: "Bumalik sa listahan",
         installedBadge: "Naka-install",
         commandsDisabled: "Hindi available ang pag-install ng app: naka-disable ang mga remote command sa server na ito (SELKIES_COMMAND_ENABLED).",
@@ -6096,6 +6251,8 @@ const fil: Dictionary = {
         dragHandle: "Hawakan sa pag-drag",
         menu: "Menu",
         hideToolbar: "Itago ang toolbar",
+        figuresStrip: "Guhit ng mga numero",
+        translucentPanels: "Bahagyang lumuluwang na mga panel",
         showToolbar: "Ipakita ang toolbar",
     },
     settingsTabs: {
@@ -6185,6 +6342,11 @@ const fil: Dictionary = {
         title: "Layout",
         default: "Sidebar",
         wish: "Toolbar",
+        edge: "Gilid",
+        edgeMoveTop: "Ilipat sa itaas",
+        edgeMoveBottom: "Ilipat sa ibaba",
+        edgeMoveLeft: "Ilipat sa kaliwa",
+        edgeMoveRight: "Ilipat sa kanan",
     },
 };
 
@@ -6388,6 +6550,8 @@ const da: Dictionary = {
         retryButton: "Prøv igen",
         searchPlaceholder: "Søg efter apps...",
         noAppsFound: "Ingen apps fundet, der matcher din søgning.",
+        categoryLabel: "Kategori",
+        allCategories: "Alle kategorier",
         backButton: "Tilbage til listen",
         installedBadge: "Installeret",
         commandsDisabled: "App-installation er ikke tilgængelig: fjernkommandoer er deaktiveret på denne server (SELKIES_COMMAND_ENABLED).",
@@ -6439,6 +6603,8 @@ const da: Dictionary = {
         dragHandle: "Trækhåndtag",
         menu: "Menu",
         hideToolbar: "Skjul værktøjslinje",
+        figuresStrip: "Talbånd",
+        translucentPanels: "Gennemskinnelige paneler",
         showToolbar: "Vis værktøjslinje",
     },
     settingsTabs: {
@@ -6528,6 +6694,11 @@ const da: Dictionary = {
         title: "Layout",
         default: "Sidepanel",
         wish: "Værktøjslinje",
+        edge: "Kant",
+        edgeMoveTop: "Flyt til toppen",
+        edgeMoveBottom: "Flyt til bunden",
+        edgeMoveLeft: "Flyt til venstre",
+        edgeMoveRight: "Flyt til højre",
     },
 };
 
